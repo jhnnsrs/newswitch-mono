@@ -112,16 +112,6 @@ Preview what a release would do, without tagging or pushing:
 just release-dry
 ```
 
-**This repo has no git remote yet**, so `just release-dry` currently fails with `ENOREPOURL` —
-semantic-release derives the repository URL from `origin`. The release pipeline is configured but has not
-been exercised end-to-end. When you add a remote:
-
-```bash
-git remote add origin git@github.com:<you>/newswitch.git
-git push -u origin main
-git push --tags          # REQUIRED: without the v1.0.0 tag, semantic-release has no baseline
-                         # and will compute a version from the entire history
-```
 
 A full local dry run also needs a `GITHUB_TOKEN` in the environment (the GitHub plugin verifies auth even
 in `--dry-run`). In CI, both the URL and the token come from the Actions checkout automatically.
