@@ -33,7 +33,9 @@ backend running — but it means:
 `frontend/blok.json` and `frontend/src/apps/default/**` are **committed on purpose**. Don't gitignore them.
 
 `blok.json` will show as modified after almost any `dev`/`build` — the plugin rewrites its `generatedAt`
-timestamp every run. That's expected noise; discard it if nothing else changed.
+timestamp every run. Generated *sources* under `src/apps/default/**` can also churn without a real change
+(`hooks/locks/index.ts` in particular reorders its exports, because the backend doesn't guarantee a stable
+order). Both are expected noise; discard them if nothing else changed.
 
 ## Common recipes
 
@@ -105,3 +107,25 @@ Preview what a release would do, without tagging or pushing:
 ```bash
 just release-dry
 ```
+
+**This repo has no git remote yet**, so `just release-dry` currently fails with `ENOREPOURL` —
+semantic-release derives the repository URL from `origin`. The release pipeline is configured but has not
+been exercised end-to-end. When you add a remote:
+
+```bash
+git remote add origin git@github.com:<you>/newswitch.git
+git push -u origin main
+git push --tags          # REQUIRED: without the v1.0.0 tag, semantic-release has no baseline
+                         # and will compute a version from the entire history
+```
+
+A full local dry run also needs a `GITHUB_TOKEN` in the environment (the GitHub plugin verifies auth even
+in `--dry-run`). In CI, both the URL and the token come from the Actions checkout automatically.
+
+## Known debt
+
+`just lint` and `just types` are **red on pre-existing issues** (~165 type errors, ~91 eslint problems,
+35 ruff findings). None of it is new: the `types` script used to point at a solution `tsconfig` with
+`files: []`, so it silently checked *zero files*, and no CI ever ran a linter. The gates are real now, and
+CI reports them **non-blocking** (`continue-on-error`) so the debt is visible without failing every build.
+Clear the backlog, then flip them to blocking in `.github/workflows/ci.yml`.

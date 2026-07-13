@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-05-27T08:51:09.507Z",
+  "generatedAt": "2026-07-13T13:42:55.340Z",
   "app": {
     "name": "newswitch",
-    "version": "0.0.0",
+    "version": "1.0.0",
     "description": "",
     "startPage": "/index.html",
     "type": "module",
@@ -2515,12 +2515,12 @@
             "stage_position"
           ],
           "manipulates": [
-            "ObjectiveState",
-            "CameraState",
-            "IlluminationState",
-            "StageState",
             "ExpanseState",
-            "FilterBankState"
+            "IlluminationState",
+            "ObjectiveState",
+            "FilterBankState",
+            "StageState",
+            "CameraState"
           ],
           "extension": null
         },
@@ -15200,18 +15200,18 @@
             "description": "Lock definition for stage_position"
           }
         },
-        "io": {
-          "key": "io",
-          "definition": {
-            "key": "io",
-            "description": "Lock definition for io"
-          }
-        },
         "camera_parameters": {
           "key": "camera_parameters",
           "definition": {
             "key": "camera_parameters",
             "description": "Lock definition for camera_parameters"
+          }
+        },
+        "io": {
+          "key": "io",
+          "definition": {
+            "key": "io",
+            "description": "Lock definition for io"
           }
         },
         "objective": {
@@ -15237,9 +15237,9 @@
         }
       },
       "schemas": {
-        "tasks": "http://jhnnsrs-lab:8099/schemas/implementations",
-        "states": "http://jhnnsrs-lab:8099/schemas/states",
-        "locks": "http://jhnnsrs-lab:8099/schemas/locks"
+        "tasks": "http://backend:8099/schemas/implementations",
+        "states": "http://backend:8099/schemas/states",
+        "locks": "http://backend:8099/schemas/locks"
       }
     }
   }

@@ -1,7 +1,7 @@
 
 // --- Assuming these are your external imports ---
 import { BACKEND_API } from "@/constants";
-import type { AbsolutePath } from "node_modules/@zarrita/storage/dist/src/types";
+import type { AbsolutePath } from "@zarrita/storage";
 // ------------------------------------------------
 
 export const GLOBAL_CACHE_ENDPOINT = `${BACKEND_API}/cache`;

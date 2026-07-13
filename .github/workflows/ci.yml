@@ -86,8 +86,16 @@ jobs:
           cache: yarn
           cache-dependency-path: frontend/yarn.lock
       - run: yarn install --frozen-lockfile
+
+      # Non-blocking for now. Both gates were dead before the monorepo (`types` pointed at
+      # a solution tsconfig with `files: []`, so it checked ZERO files, and no CI ever ran
+      # eslint), which hid ~165 type errors and ~91 eslint problems. They're reported here
+      # so the debt is visible; flip these to blocking once the backlog is cleared.
       - run: yarn lint
+        continue-on-error: true
       - run: yarn types
+        continue-on-error: true
+
       # No backend in CI: the vite plugin warns on failed schema fetches and reuses the
       # committed blok.json + src/apps/default/**. A green build here therefore also
       # asserts those generated files are present and coherent in git.

@@ -1,4 +1,7 @@
-import { type AbsolutePath } from "@zarrita/storage";
+// Must stay a type-only import: `import { type X }` keeps the module side-effect under
+// verbatimModuleSyntax, which pulls @zarrita/storage's Node-only FileSystemStore (fs.js)
+// into the browser bundle and breaks the build.
+import type { AbsolutePath } from "@zarrita/storage";
 import { FetchStore } from "zarrita";
 import { LRUCache } from "../caches/in_memory_lru";
 

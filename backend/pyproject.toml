@@ -54,8 +54,10 @@ dev-dependencies =  [
 ]
 
 
-[tool.ruff]
+[tool.ruff.lint]
 extend-select = ["ANN", "D1", "F401"]
+
+[tool.ruff]
 
 
 # Exclude a variety of commonly ignored directories.
