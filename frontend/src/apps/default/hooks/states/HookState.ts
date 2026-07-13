@@ -11,6 +11,8 @@ export const RegisteredHookSchema = z
   .describe(
     'Data class representing a hook to be executed during acquisition.',
   );
+export type RegisteredHook = z.input<typeof RegisteredHookSchema>;
+export type RegisteredHookOutput = z.infer<typeof RegisteredHookSchema>;
 
 // --- Main Schema ---
 export const HookStateSchema = z.object({

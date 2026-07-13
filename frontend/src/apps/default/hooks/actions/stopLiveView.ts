@@ -10,7 +10,9 @@ export const StopLiveViewReturnSchema = z.object({
 });
 
 // --- Types ---
-export type StopLiveViewArgs = z.infer<typeof StopLiveViewArgsSchema>;
+// Args is the INPUT type (what you construct and pass to the hook; useAction parses it).
+// Return is the OUTPUT type (what comes back, already parsed).
+export type StopLiveViewArgs = z.input<typeof StopLiveViewArgsSchema>;
 export type StopLiveViewReturn = z.infer<typeof StopLiveViewReturnSchema>;
 
 // --- Definition ---

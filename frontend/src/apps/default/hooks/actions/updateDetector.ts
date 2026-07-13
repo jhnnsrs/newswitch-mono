@@ -24,6 +24,8 @@ export const DetectorSchema = z
   })
   .brand('detector')
   .describe('Shared state for detector parameters.');
+export type Detector = z.input<typeof DetectorSchema>;
+export type DetectorOutput = z.infer<typeof DetectorSchema>;
 
 // --- Schemas ---
 export const UpdateDetectorArgsSchema = z.object({
@@ -44,7 +46,9 @@ export const UpdateDetectorReturnSchema = z.object({
 });
 
 // --- Types ---
-export type UpdateDetectorArgs = z.infer<typeof UpdateDetectorArgsSchema>;
+// Args is the INPUT type (what you construct and pass to the hook; useAction parses it).
+// Return is the OUTPUT type (what comes back, already parsed).
+export type UpdateDetectorArgs = z.input<typeof UpdateDetectorArgsSchema>;
 export type UpdateDetectorReturn = z.infer<typeof UpdateDetectorReturnSchema>;
 
 // --- Definition ---

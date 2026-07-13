@@ -9,7 +9,11 @@ export interface ActionDefinition<
   name: string;
   appKey: TAppKey;
   description?: string;
-  argsSchema: ZodType<TArgs>;
+  // TArgs is the schema's INPUT, not its output: callers hand-build args and useAction
+  // parses them (`argsSchema.safeParse(args)`) before sending `parsed.data` to the wire.
+  // Typing this as ZodType<TArgs> would pin TArgs to the *output* - and since the generated
+  // model schemas are `.brand()`ed, that output is unconstructible by hand.
+  argsSchema: ZodType<unknown, TArgs>;
   returnSchema: ZodType<TReturn>;
   lockKeys: string[];
 }

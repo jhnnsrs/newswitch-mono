@@ -8,7 +8,9 @@ export const ClearExpanseArgsSchema = z.object({});
 export const ClearExpanseReturnSchema = z.object({});
 
 // --- Types ---
-export type ClearExpanseArgs = z.infer<typeof ClearExpanseArgsSchema>;
+// Args is the INPUT type (what you construct and pass to the hook; useAction parses it).
+// Return is the OUTPUT type (what comes back, already parsed).
+export type ClearExpanseArgs = z.input<typeof ClearExpanseArgsSchema>;
 export type ClearExpanseReturn = z.infer<typeof ClearExpanseReturnSchema>;
 
 // --- Definition ---

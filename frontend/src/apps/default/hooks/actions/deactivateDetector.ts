@@ -13,7 +13,9 @@ export const DeactivateDetectorReturnSchema = z.object({
 });
 
 // --- Types ---
-export type DeactivateDetectorArgs = z.infer<
+// Args is the INPUT type (what you construct and pass to the hook; useAction parses it).
+// Return is the OUTPUT type (what comes back, already parsed).
+export type DeactivateDetectorArgs = z.input<
   typeof DeactivateDetectorArgsSchema
 >;
 export type DeactivateDetectorReturn = z.infer<

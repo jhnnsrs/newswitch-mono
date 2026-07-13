@@ -33,6 +33,8 @@ export const ObjectiveKubeSchema = z
   .describe(
     'Data class representing metadata for a kube, including its ID and affine transformation matrix.',
   );
+export type ObjectiveKube = z.input<typeof ObjectiveKubeSchema>;
+export type ObjectiveKubeOutput = z.infer<typeof ObjectiveKubeSchema>;
 
 export const DetectorKubeSchema = z
   .object({
@@ -62,6 +64,8 @@ export const DetectorKubeSchema = z
   .describe(
     'Data class representing metadata for a kube, including its ID and affine transformation matrix.',
   );
+export type DetectorKube = z.input<typeof DetectorKubeSchema>;
+export type DetectorKubeOutput = z.infer<typeof DetectorKubeSchema>;
 
 export const FilterKubeSchema = z
   .object({
@@ -91,6 +95,8 @@ export const FilterKubeSchema = z
   .describe(
     'Data class representing metadata for a kube, including its ID and affine transformation matrix.',
   );
+export type FilterKube = z.input<typeof FilterKubeSchema>;
+export type FilterKubeOutput = z.infer<typeof FilterKubeSchema>;
 
 export const IlluminationKubeSchema = z
   .object({
@@ -122,6 +128,8 @@ export const IlluminationKubeSchema = z
   .describe(
     'Data class representing metadata for a kube, including its ID and affine transformation matrix.',
   );
+export type IlluminationKube = z.input<typeof IlluminationKubeSchema>;
+export type IlluminationKubeOutput = z.infer<typeof IlluminationKubeSchema>;
 
 export const GenericKubeSchema = z
   .object({
@@ -161,6 +169,8 @@ export const GenericKubeSchema = z
   .describe(
     'Data class representing metadata for a kube, including its ID and affine transformation matrix.',
   );
+export type GenericKube = z.input<typeof GenericKubeSchema>;
+export type GenericKubeOutput = z.infer<typeof GenericKubeSchema>;
 
 export const StageKubeSchema = z
   .object({
@@ -192,6 +202,8 @@ export const StageKubeSchema = z
   .describe(
     'Data class repesentating the stage, including its ID and affine transformation matrix.',
   );
+export type StageKube = z.input<typeof StageKubeSchema>;
+export type StageKubeOutput = z.infer<typeof StageKubeSchema>;
 
 export const DichroicKubeSchema = z
   .object({
@@ -223,6 +235,8 @@ export const DichroicKubeSchema = z
   .describe(
     'Data class representing metadata for a kube, including its ID and affine transformation matrix.',
   );
+export type DichroicKube = z.input<typeof DichroicKubeSchema>;
+export type DichroicKubeOutput = z.infer<typeof DichroicKubeSchema>;
 
 export const FilterBankKubeSchema = z
   .object({
@@ -253,6 +267,8 @@ export const FilterBankKubeSchema = z
   .describe(
     'Data class representing metadata for a kube, including its ID and affine transformation matrix.',
   );
+export type FilterBankKube = z.input<typeof FilterBankKubeSchema>;
+export type FilterBankKubeOutput = z.infer<typeof FilterBankKubeSchema>;
 
 export const ObjectiveTurretKubeSchema = z
   .object({
@@ -285,6 +301,10 @@ export const ObjectiveTurretKubeSchema = z
   .describe(
     'Data class representing metadata for a kube, including its ID and affine transformation matrix.',
   );
+export type ObjectiveTurretKube = z.input<typeof ObjectiveTurretKubeSchema>;
+export type ObjectiveTurretKubeOutput = z.infer<
+  typeof ObjectiveTurretKubeSchema
+>;
 
 export const KubeUnionSchema = createIndexedUnion([
   ObjectiveKubeSchema.describe(
@@ -336,6 +356,8 @@ export const LightEdgeSchema = z
   .describe(
     'Data class representing the light path used for an image, including illumination settings.',
   );
+export type LightEdge = z.input<typeof LightEdgeSchema>;
+export type LightEdgeOutput = z.infer<typeof LightEdgeSchema>;
 
 export const LightPathSchema = z
   .object({
@@ -363,6 +385,8 @@ export const LightPathSchema = z
   .describe(
     'Data class representing the light path used for an image, including illumination settings.',
   );
+export type LightPath = z.input<typeof LightPathSchema>;
+export type LightPathOutput = z.infer<typeof LightPathSchema>;
 
 // --- Main Schema ---
 export const LightPathStateSchema = z.object({

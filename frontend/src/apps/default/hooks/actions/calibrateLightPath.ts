@@ -26,6 +26,10 @@ export const CalibratedLightPathSchema = z
   })
   .brand('calibrated_light_path')
   .describe('Shared state for affine transformation parameters.');
+export type CalibratedLightPath = z.input<typeof CalibratedLightPathSchema>;
+export type CalibratedLightPathOutput = z.infer<
+  typeof CalibratedLightPathSchema
+>;
 
 // --- Schemas ---
 export const CalibrateLightPathArgsSchema = z.object({});
@@ -39,7 +43,9 @@ export const CalibrateLightPathReturnSchema = z.object({
 });
 
 // --- Types ---
-export type CalibrateLightPathArgs = z.infer<
+// Args is the INPUT type (what you construct and pass to the hook; useAction parses it).
+// Return is the OUTPUT type (what comes back, already parsed).
+export type CalibrateLightPathArgs = z.input<
   typeof CalibrateLightPathArgsSchema
 >;
 export type CalibrateLightPathReturn = z.infer<

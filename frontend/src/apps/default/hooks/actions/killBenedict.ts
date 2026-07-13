@@ -11,7 +11,9 @@ export const KillBenedictArgsSchema = z.object({
 export const KillBenedictReturnSchema = z.object({});
 
 // --- Types ---
-export type KillBenedictArgs = z.infer<typeof KillBenedictArgsSchema>;
+// Args is the INPUT type (what you construct and pass to the hook; useAction parses it).
+// Return is the OUTPUT type (what comes back, already parsed).
+export type KillBenedictArgs = z.input<typeof KillBenedictArgsSchema>;
 export type KillBenedictReturn = z.infer<typeof KillBenedictReturnSchema>;
 
 // --- Definition ---

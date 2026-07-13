@@ -26,6 +26,10 @@ export const CalibratedLightPathSchema = z
   })
   .brand('calibrated_light_path')
   .describe('Shared state for affine transformation parameters.');
+export type CalibratedLightPath = z.input<typeof CalibratedLightPathSchema>;
+export type CalibratedLightPathOutput = z.infer<
+  typeof CalibratedLightPathSchema
+>;
 
 // --- Main Schema ---
 export const CalibrationStateSchema = z.object({

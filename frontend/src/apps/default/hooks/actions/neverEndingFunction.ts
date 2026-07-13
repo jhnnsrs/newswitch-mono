@@ -8,7 +8,9 @@ export const NeverEndingFunctionArgsSchema = z.object({});
 export const NeverEndingFunctionReturnSchema = z.object({});
 
 // --- Types ---
-export type NeverEndingFunctionArgs = z.infer<
+// Args is the INPUT type (what you construct and pass to the hook; useAction parses it).
+// Return is the OUTPUT type (what comes back, already parsed).
+export type NeverEndingFunctionArgs = z.input<
   typeof NeverEndingFunctionArgsSchema
 >;
 export type NeverEndingFunctionReturn = z.infer<

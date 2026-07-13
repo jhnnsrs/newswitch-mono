@@ -14,6 +14,8 @@ export const ObjectiveLensSchema = z
   })
   .brand('objective_lens')
   .describe('Configuration for a single objective lens.');
+export type ObjectiveLens = z.input<typeof ObjectiveLensSchema>;
+export type ObjectiveLensOutput = z.infer<typeof ObjectiveLensSchema>;
 
 // --- Main Schema ---
 export const ObjectiveStateSchema = z.object({

@@ -14,6 +14,8 @@ export const ScaleSchema = z
   })
   .brand('scale')
   .describe('Represents a scale factor for a 3D volume.');
+export type Scale = z.input<typeof ScaleSchema>;
+export type ScaleOutput = z.infer<typeof ScaleSchema>;
 
 export const ObjectiveKubeStateSchema = z
   .object({
@@ -47,6 +49,8 @@ export const ObjectiveKubeStateSchema = z
   .describe(
     'Data class representing metadata for a kube, including its ID and affine transformation matrix.',
   );
+export type ObjectiveKubeState = z.input<typeof ObjectiveKubeStateSchema>;
+export type ObjectiveKubeStateOutput = z.infer<typeof ObjectiveKubeStateSchema>;
 
 export const DetectorKubeStateSchema = z
   .object({
@@ -77,6 +81,8 @@ export const DetectorKubeStateSchema = z
   .describe(
     'Data class representing metadata for a kube, including its ID and affine transformation matrix.',
   );
+export type DetectorKubeState = z.input<typeof DetectorKubeStateSchema>;
+export type DetectorKubeStateOutput = z.infer<typeof DetectorKubeStateSchema>;
 
 export const FilterKubeStateSchema = z
   .object({
@@ -108,6 +114,8 @@ export const FilterKubeStateSchema = z
   .describe(
     'Data class representing metadata for a kube, including its ID and affine transformation matrix.',
   );
+export type FilterKubeState = z.input<typeof FilterKubeStateSchema>;
+export type FilterKubeStateOutput = z.infer<typeof FilterKubeStateSchema>;
 
 export const IlluminationKubeStateSchema = z
   .object({
@@ -143,6 +151,10 @@ export const IlluminationKubeStateSchema = z
   .describe(
     'Data class representing metadata for a kube, including its ID and affine transformation matrix.',
   );
+export type IlluminationKubeState = z.input<typeof IlluminationKubeStateSchema>;
+export type IlluminationKubeStateOutput = z.infer<
+  typeof IlluminationKubeStateSchema
+>;
 
 export const GenericKubeStateSchema = z
   .object({
@@ -170,6 +182,8 @@ export const GenericKubeStateSchema = z
   .describe(
     'Data class representing metadata for a kube, including its ID and affine transformation matrix.',
   );
+export type GenericKubeState = z.input<typeof GenericKubeStateSchema>;
+export type GenericKubeStateOutput = z.infer<typeof GenericKubeStateSchema>;
 
 export const StageKubeStateSchema = z
   .object({
@@ -196,6 +210,8 @@ export const StageKubeStateSchema = z
   .describe(
     'Data class representing metadata for a kube, including its ID and affine transformation matrix.',
   );
+export type StageKubeState = z.input<typeof StageKubeStateSchema>;
+export type StageKubeStateOutput = z.infer<typeof StageKubeStateSchema>;
 
 export const DichroicKubeStateSchema = z
   .object({
@@ -228,6 +244,8 @@ export const DichroicKubeStateSchema = z
   .describe(
     'Data class representing metadata for a kube, including its ID and affine transformation matrix.',
   );
+export type DichroicKubeState = z.input<typeof DichroicKubeStateSchema>;
+export type DichroicKubeStateOutput = z.infer<typeof DichroicKubeStateSchema>;
 
 export const FilterBankKubeStateSchema = z
   .object({
@@ -264,6 +282,10 @@ export const FilterBankKubeStateSchema = z
   .describe(
     'Data class representing metadata for a kube, including its ID and affine transformation matrix.',
   );
+export type FilterBankKubeState = z.input<typeof FilterBankKubeStateSchema>;
+export type FilterBankKubeStateOutput = z.infer<
+  typeof FilterBankKubeStateSchema
+>;
 
 export const ObjectiveTurretKubeStateSchema = z
   .object({
@@ -299,6 +321,12 @@ export const ObjectiveTurretKubeStateSchema = z
   .describe(
     'Data class representing metadata for a kube, including its ID and affine transformation matrix.',
   );
+export type ObjectiveTurretKubeState = z.input<
+  typeof ObjectiveTurretKubeStateSchema
+>;
+export type ObjectiveTurretKubeStateOutput = z.infer<
+  typeof ObjectiveTurretKubeStateSchema
+>;
 
 export const KubeUnionSchema = createIndexedUnion([
   ObjectiveKubeStateSchema.describe(
@@ -356,6 +384,8 @@ export const LightEdgeStateSchema = z
   .describe(
     'Data class representing the light path used for an image, including illumination settings.',
   );
+export type LightEdgeState = z.input<typeof LightEdgeStateSchema>;
+export type LightEdgeStateOutput = z.infer<typeof LightEdgeStateSchema>;
 
 export const LightPathStateSchema = z
   .object({
@@ -389,6 +419,8 @@ export const LightPathStateSchema = z
   .describe(
     'Data class representing the light path used for an image, including illumination settings.',
   );
+export type LightPathState = z.input<typeof LightPathStateSchema>;
+export type LightPathStateOutput = z.infer<typeof LightPathStateSchema>;
 
 export const MetadataSchema = z
   .object({
@@ -409,6 +441,8 @@ export const MetadataSchema = z
   .describe(
     'Data class representing metadata for an image, including its ID and affine transformation matrix.',
   );
+export type Metadata = z.input<typeof MetadataSchema>;
+export type MetadataOutput = z.infer<typeof MetadataSchema>;
 
 export const ArrayMetadataSchema = z
   .object({
@@ -420,6 +454,8 @@ export const ArrayMetadataSchema = z
   .describe(
     'Metadata for a raw array before it is saved as an image, including the light path and acquisition settings.',
   );
+export type ArrayMetadata = z.input<typeof ArrayMetadataSchema>;
+export type ArrayMetadataOutput = z.infer<typeof ArrayMetadataSchema>;
 
 export const FrameSchema = z
   .object({
@@ -439,6 +475,8 @@ export const FrameSchema = z
   })
   .brand('frame')
   .describe('Represents a single 3D volume captured by the detector.');
+export type Frame = z.input<typeof FrameSchema>;
+export type FrameOutput = z.infer<typeof FrameSchema>;
 
 // --- Schemas ---
 export const CaptureImageArgsSchema = z.object({});
@@ -451,7 +489,9 @@ export const CaptureImageReturnSchema = z.object({
 });
 
 // --- Types ---
-export type CaptureImageArgs = z.infer<typeof CaptureImageArgsSchema>;
+// Args is the INPUT type (what you construct and pass to the hook; useAction parses it).
+// Return is the OUTPUT type (what comes back, already parsed).
+export type CaptureImageArgs = z.input<typeof CaptureImageArgsSchema>;
 export type CaptureImageReturn = z.infer<typeof CaptureImageReturnSchema>;
 
 // --- Definition ---

@@ -8,7 +8,9 @@ export const ToggleObjectiveArgsSchema = z.object({});
 export const ToggleObjectiveReturnSchema = z.object({});
 
 // --- Types ---
-export type ToggleObjectiveArgs = z.infer<typeof ToggleObjectiveArgsSchema>;
+// Args is the INPUT type (what you construct and pass to the hook; useAction parses it).
+// Return is the OUTPUT type (what comes back, already parsed).
+export type ToggleObjectiveArgs = z.input<typeof ToggleObjectiveArgsSchema>;
 export type ToggleObjectiveReturn = z.infer<typeof ToggleObjectiveReturnSchema>;
 
 // --- Definition ---

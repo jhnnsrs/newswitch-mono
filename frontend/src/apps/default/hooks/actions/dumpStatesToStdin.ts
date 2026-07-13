@@ -8,7 +8,9 @@ export const DumpStatesToStdinArgsSchema = z.object({});
 export const DumpStatesToStdinReturnSchema = z.object({});
 
 // --- Types ---
-export type DumpStatesToStdinArgs = z.infer<typeof DumpStatesToStdinArgsSchema>;
+// Args is the INPUT type (what you construct and pass to the hook; useAction parses it).
+// Return is the OUTPUT type (what comes back, already parsed).
+export type DumpStatesToStdinArgs = z.input<typeof DumpStatesToStdinArgsSchema>;
 export type DumpStatesToStdinReturn = z.infer<
   typeof DumpStatesToStdinReturnSchema
 >;

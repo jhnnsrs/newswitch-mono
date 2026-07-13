@@ -14,6 +14,8 @@ export const FilterSchema = z
   })
   .brand('filter')
   .describe('The newly active filter.');
+export type Filter = z.input<typeof FilterSchema>;
+export type FilterOutput = z.infer<typeof FilterSchema>;
 
 // --- Schemas ---
 export const ToggleFilterArgsSchema = z.object({});
@@ -23,7 +25,9 @@ export const ToggleFilterReturnSchema = z.object({
 });
 
 // --- Types ---
-export type ToggleFilterArgs = z.infer<typeof ToggleFilterArgsSchema>;
+// Args is the INPUT type (what you construct and pass to the hook; useAction parses it).
+// Return is the OUTPUT type (what comes back, already parsed).
+export type ToggleFilterArgs = z.input<typeof ToggleFilterArgsSchema>;
 export type ToggleFilterReturn = z.infer<typeof ToggleFilterReturnSchema>;
 
 // --- Definition ---

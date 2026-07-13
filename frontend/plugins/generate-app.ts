@@ -177,9 +177,65 @@ const ensureDir = (dirPath: string) => {
   fs.mkdirSync(dirPath, { recursive: true });
 };
 
-const resetDir = (dirPath: string) => {
-  fs.rmSync(dirPath, { force: true, recursive: true });
-  fs.mkdirSync(dirPath, { recursive: true });
+// Codepoint order, NOT localeCompare: locale/ICU differences would make the generated
+// output machine-dependent, which is exactly what the CI drift check cannot tolerate.
+const byCodepoint = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+
+const sortedEntries = <T>(record: Record<string, T>): [string, T][] =>
+  Object.entries(record).sort(([a], [b]) => byCodepoint(a, b));
+
+// Object key order follows the backend's JSON wire order, which is not stable across
+// runs. Sort it away. Arrays are left alone - their order is semantic.
+const sortKeysDeep = (value: unknown): unknown => {
+  if (Array.isArray(value)) {
+    return value.map(sortKeysDeep);
+  }
+
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    return Object.fromEntries(
+      Object.keys(record)
+        .sort(byCodepoint)
+        .map((key) => [key, sortKeysDeep(record[key])]),
+    );
+  }
+
+  return value;
+};
+
+// Every write goes through here. Rewriting a byte-identical file would churn its mtime,
+// which re-triggers Vite's watcher and makes `git status` dirty after a no-op codegen.
+const writeIfChanged = (filePath: string, content: string) => {
+  try {
+    if (fs.readFileSync(filePath, 'utf-8') === content) {
+      return false;
+    }
+  } catch {
+    // File does not exist yet - fall through and write it.
+  }
+
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, content);
+  return true;
+};
+
+// Replaces the old rm -rf + rewrite: drop only files we did NOT emit this run, so a
+// lock/state/action removed from the backend still disappears, but unchanged files keep
+// their mtime.
+const pruneDir = (dirPath: string, expectedFileNames: Set<string>) => {
+  let entries: string[];
+
+  try {
+    entries = fs.readdirSync(dirPath);
+  } catch {
+    return;
+  }
+
+  for (const entry of entries) {
+    if (!expectedFileNames.has(entry)) {
+      fs.rmSync(path.join(dirPath, entry), { force: true, recursive: true });
+    }
+  }
 };
 
 const formatTypeScript = async (content: string) =>
@@ -191,13 +247,11 @@ const formatTypeScript = async (content: string) =>
 
 const formatAndWrite = async (filePath: string, content: string) => {
   const formatted = await formatTypeScript(content);
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  fs.writeFileSync(filePath, formatted);
+  writeIfChanged(filePath, formatted);
 };
 
 const formatAndWriteJson = (filePath: string, value: unknown) => {
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`);
+  writeIfChanged(filePath, `${JSON.stringify(value, null, 2)}\n`);
 };
 
 const readJsonFile = (filePath: string) => {
@@ -539,9 +593,21 @@ function mapPortToZod(
           ? `${brandedSchemaCode}.describe(${JSON.stringify(port.description)})`
           : brandedSchemaCode;
 
+        // Emit type aliases alongside the schema; without them, consumers importing the
+        // nested model type (Illumination, Position, Stack, ...) from the barrel get nothing.
+        //
+        // The bare name is the INPUT type on purpose. These schemas are branded, so the
+        // output type carries a $brand marker and a required __identifier that you can only
+        // obtain by parsing - a hand-built object literal can never satisfy it. Consumers
+        // construct these values (acquisition payloads, form defaults), so they need the
+        // pre-parse shape. The parsed/output type is exposed as `<Name>Output`.
+        const modelTypeName = modelName.replace(/Schema$/, '');
+
         context.subSchemas.set(
           modelName,
-          `export const ${modelName} = ${describedSchemaCode};${
+          `export const ${modelName} = ${describedSchemaCode};
+export type ${modelTypeName} = z.input<typeof ${modelName}>;
+export type ${modelTypeName}Output = z.infer<typeof ${modelName}>;${
             context.symbolPrefix ? `\nexport const ${rawModelName} = ${modelName};` : ''
           }`,
         );
@@ -679,7 +745,9 @@ export const ${argsSchemaName} = ${argsSchemaCode};
 export const ${returnSchemaName} = ${returnsSchemaCode};
 
 // --- Types ---
-export type ${argsTypeName} = z.infer<typeof ${argsSchemaName}>;
+// Args is the INPUT type (what you construct and pass to the hook; useAction parses it).
+// Return is the OUTPUT type (what comes back, already parsed).
+export type ${argsTypeName} = z.input<typeof ${argsSchemaName}>;
 export type ${returnTypeName} = z.infer<typeof ${returnSchemaName}>;
 ${schemaAndTypeAliases}
 
@@ -841,14 +909,15 @@ const generateActionsDirectory = async (options: {
     blacklist,
   } = options;
 
-  resetDir(outputDir);
+  ensureDir(outputDir);
   await writeSharedUtilsIfNeeded(outputDir);
 
+  const emitted = new Set<string>(['utils.ts', 'index.ts']);
   const fileExports = new Map<string, ExportEntry[]>();
   fileExports.set('utils', getExportEntries(await formatTypeScript(SHARED_UTILS_CODE)));
   const generatedActions: ActionModuleEntry[] = [];
 
-  for (const [key, implementation] of Object.entries(schema.implementations)) {
+  for (const [key, implementation] of sortedEntries(schema.implementations)) {
     if (!shouldGenerate(key, whitelist, blacklist)) {
       continue;
     }
@@ -865,7 +934,8 @@ const generateActionsDirectory = async (options: {
     );
     const formatted = await formatTypeScript(code);
 
-    fs.writeFileSync(path.join(outputDir, `${hookFileName}.ts`), formatted);
+    emitted.add(`${hookFileName}.ts`);
+    writeIfChanged(path.join(outputDir, `${hookFileName}.ts`), formatted);
     fileExports.set(hookFileName, getExportEntries(formatted));
     generatedActions.push({
       fileName: hookFileName,
@@ -898,6 +968,7 @@ export const globalActionDefintiion = globalActionDefinition;
 `;
 
   await formatAndWrite(path.join(outputDir, 'index.ts'), indexCode);
+  pruneDir(outputDir, emitted);
 };
 
 const generateStatesDirectory = async (options: {
@@ -919,14 +990,15 @@ const generateStatesDirectory = async (options: {
     blacklist,
   } = options;
 
-  resetDir(outputDir);
+  ensureDir(outputDir);
   await writeSharedUtilsIfNeeded(outputDir);
 
+  const emitted = new Set<string>(['utils.ts', 'index.ts']);
   const fileExports = new Map<string, ExportEntry[]>();
   fileExports.set('utils', getExportEntries(await formatTypeScript(SHARED_UTILS_CODE)));
   const generatedStates: StateModuleEntry[] = [];
 
-  for (const [key, stateDefinition] of Object.entries(schema.states)) {
+  for (const [key, stateDefinition] of sortedEntries(schema.states)) {
     if (!shouldGenerate(key, whitelist, blacklist)) {
       continue;
     }
@@ -942,7 +1014,8 @@ const generateStatesDirectory = async (options: {
     );
     const formatted = await formatTypeScript(code);
 
-    fs.writeFileSync(path.join(outputDir, `${stateName}.ts`), formatted);
+    emitted.add(`${stateName}.ts`);
+    writeIfChanged(path.join(outputDir, `${stateName}.ts`), formatted);
     fileExports.set(stateName, getExportEntries(formatted));
     generatedStates.push({
       fileName: stateName,
@@ -985,6 +1058,7 @@ export const globalStateDefintiion = globalStateDefinition;
 `;
 
   await formatAndWrite(path.join(outputDir, 'index.ts'), indexCode);
+  pruneDir(outputDir, emitted);
 };
 
 const generateLocksDirectory = async (options: {
@@ -1006,12 +1080,13 @@ const generateLocksDirectory = async (options: {
     blacklist,
   } = options;
 
-  resetDir(outputDir);
+  ensureDir(outputDir);
 
+  const emitted = new Set<string>(['index.ts']);
   const fileExports = new Map<string, ExportEntry[]>();
   const generatedLocks: LockModuleEntry[] = [];
 
-  for (const [key, lockDefinition] of Object.entries(schema.locks)) {
+  for (const [key, lockDefinition] of sortedEntries(schema.locks)) {
     if (!shouldGenerate(key, whitelist, blacklist)) {
       continue;
     }
@@ -1027,7 +1102,8 @@ const generateLocksDirectory = async (options: {
     );
     const formatted = await formatTypeScript(code);
 
-    fs.writeFileSync(path.join(outputDir, `${lockName}.ts`), formatted);
+    emitted.add(`${lockName}.ts`);
+    writeIfChanged(path.join(outputDir, `${lockName}.ts`), formatted);
     fileExports.set(lockName, getExportEntries(formatted));
     generatedLocks.push({
       fileName: lockName,
@@ -1068,6 +1144,7 @@ export const globalLockDefintiion = globalLockDefinition;
 `;
 
   await formatAndWrite(path.join(outputDir, 'index.ts'), indexCode);
+  pruneDir(outputDir, emitted);
 };
 
 const buildTaskHookContent = (
@@ -1163,9 +1240,19 @@ export default function generateAppsPlugin(
   const rekuestImportPath =
     options.rekuestImportPath ?? DEFAULT_REKUEST_IMPORT_PATH;
 
+  // buildStart fires on `vite build` AND on every dev-server (re)start. Without this the
+  // whole pipeline - three fetches plus a full rewrite - re-runs on each restart.
+  let generation: Promise<void> | null = null;
+
   return {
     name: 'vite-plugin-generate-apps',
     async buildStart() {
+      generation ??= generate();
+      return generation;
+    },
+  };
+
+  async function generate() {
       ensureDir(appsDir);
 
       const packageData = readJsonFile(PACKAGE_JSON_PATH) ?? {};
@@ -1194,6 +1281,10 @@ export default function generateAppsPlugin(
         ]);
 
         const previousAppEntry = previousApps[app.key] ?? {};
+        const previousAppSchemas = (previousAppEntry.schemas ?? {}) as Record<
+          string,
+          string | null
+        >;
 
         blokApps[app.key] = {
           key: app.key,
@@ -1210,10 +1301,12 @@ export default function generateAppsPlugin(
             (locksSchemaJson?.locks as Record<string, unknown> | undefined)
             ?? (previousAppEntry.locks as Record<string, unknown> | undefined)
             ?? {},
+          // Fall back to the recorded URLs: these come from env (VITE_SCHEMA_*), so a build
+          // with those vars unset would otherwise overwrite good values with null.
           schemas: {
-            tasks: app.hooksSchemaUrl ?? null,
-            states: app.statesSchemaUrl ?? null,
-            locks: app.locksSchemaUrl ?? null,
+            tasks: app.hooksSchemaUrl ?? previousAppSchemas.tasks ?? null,
+            states: app.statesSchemaUrl ?? previousAppSchemas.states ?? null,
+            locks: app.locksSchemaUrl ?? previousAppSchemas.locks ?? null,
           },
         };
 
@@ -1362,8 +1455,9 @@ export type AppDefinition = AppsDefinition[AppKey];
 `,
       );
 
-      formatAndWriteJson(BLOK_PATH, {
-        generatedAt: new Date().toISOString(),
+      // Everything except generatedAt. Key order comes from the backend's JSON and is not
+      // stable, so deep-sort it before comparing or writing.
+      const blokPayload = sortKeysDeep({
         app: {
           name: (packageData.name as string | undefined) ?? 'unknown',
           version: (packageData.version as string | undefined) ?? '0.0.0',
@@ -1378,7 +1472,18 @@ export type AppDefinition = AppsDefinition[AppKey];
           },
         },
         apps: blokApps,
+      }) as Record<string, unknown>;
+
+      // Only stamp a new generatedAt when the content actually changed. Otherwise every
+      // dev-server start would dirty blok.json (780KB) for no reason.
+      const { generatedAt: previousGeneratedAt, ...previousPayload } = previousBlok;
+      const unchanged =
+        typeof previousGeneratedAt === 'string'
+        && JSON.stringify(sortKeysDeep(previousPayload)) === JSON.stringify(blokPayload);
+
+      formatAndWriteJson(BLOK_PATH, {
+        generatedAt: unchanged ? previousGeneratedAt : new Date().toISOString(),
+        ...blokPayload,
       });
-    },
-  };
+  }
 }

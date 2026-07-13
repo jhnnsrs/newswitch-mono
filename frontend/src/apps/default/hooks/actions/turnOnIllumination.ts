@@ -26,7 +26,9 @@ export const TurnOnIlluminationReturnSchema = z.object({
 });
 
 // --- Types ---
-export type TurnOnIlluminationArgs = z.infer<
+// Args is the INPUT type (what you construct and pass to the hook; useAction parses it).
+// Return is the OUTPUT type (what comes back, already parsed).
+export type TurnOnIlluminationArgs = z.input<
   typeof TurnOnIlluminationArgsSchema
 >;
 export type TurnOnIlluminationReturn = z.infer<

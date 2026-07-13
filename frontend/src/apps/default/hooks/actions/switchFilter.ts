@@ -14,6 +14,8 @@ export const FilterSchema = z
   })
   .brand('filter')
   .describe('The newly active filter.');
+export type Filter = z.input<typeof FilterSchema>;
+export type FilterOutput = z.infer<typeof FilterSchema>;
 
 // --- Schemas ---
 export const SwitchFilterArgsSchema = z.object({
@@ -26,7 +28,9 @@ export const SwitchFilterReturnSchema = z.object({
 });
 
 // --- Types ---
-export type SwitchFilterArgs = z.infer<typeof SwitchFilterArgsSchema>;
+// Args is the INPUT type (what you construct and pass to the hook; useAction parses it).
+// Return is the OUTPUT type (what comes back, already parsed).
+export type SwitchFilterArgs = z.input<typeof SwitchFilterArgsSchema>;
 export type SwitchFilterReturn = z.infer<typeof SwitchFilterReturnSchema>;
 
 // --- Definition ---

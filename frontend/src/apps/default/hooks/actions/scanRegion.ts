@@ -35,6 +35,8 @@ export const ObjectiveKubeStateSchema = z
   .describe(
     'Data class representing metadata for a kube, including its ID and affine transformation matrix.',
   );
+export type ObjectiveKubeState = z.input<typeof ObjectiveKubeStateSchema>;
+export type ObjectiveKubeStateOutput = z.infer<typeof ObjectiveKubeStateSchema>;
 
 export const DetectorKubeStateSchema = z
   .object({
@@ -65,6 +67,8 @@ export const DetectorKubeStateSchema = z
   .describe(
     'Data class representing metadata for a kube, including its ID and affine transformation matrix.',
   );
+export type DetectorKubeState = z.input<typeof DetectorKubeStateSchema>;
+export type DetectorKubeStateOutput = z.infer<typeof DetectorKubeStateSchema>;
 
 export const FilterKubeStateSchema = z
   .object({
@@ -96,6 +100,8 @@ export const FilterKubeStateSchema = z
   .describe(
     'Data class representing metadata for a kube, including its ID and affine transformation matrix.',
   );
+export type FilterKubeState = z.input<typeof FilterKubeStateSchema>;
+export type FilterKubeStateOutput = z.infer<typeof FilterKubeStateSchema>;
 
 export const IlluminationKubeStateSchema = z
   .object({
@@ -131,6 +137,10 @@ export const IlluminationKubeStateSchema = z
   .describe(
     'Data class representing metadata for a kube, including its ID and affine transformation matrix.',
   );
+export type IlluminationKubeState = z.input<typeof IlluminationKubeStateSchema>;
+export type IlluminationKubeStateOutput = z.infer<
+  typeof IlluminationKubeStateSchema
+>;
 
 export const GenericKubeStateSchema = z
   .object({
@@ -158,6 +168,8 @@ export const GenericKubeStateSchema = z
   .describe(
     'Data class representing metadata for a kube, including its ID and affine transformation matrix.',
   );
+export type GenericKubeState = z.input<typeof GenericKubeStateSchema>;
+export type GenericKubeStateOutput = z.infer<typeof GenericKubeStateSchema>;
 
 export const StageKubeStateSchema = z
   .object({
@@ -184,6 +196,8 @@ export const StageKubeStateSchema = z
   .describe(
     'Data class representing metadata for a kube, including its ID and affine transformation matrix.',
   );
+export type StageKubeState = z.input<typeof StageKubeStateSchema>;
+export type StageKubeStateOutput = z.infer<typeof StageKubeStateSchema>;
 
 export const DichroicKubeStateSchema = z
   .object({
@@ -216,6 +230,8 @@ export const DichroicKubeStateSchema = z
   .describe(
     'Data class representing metadata for a kube, including its ID and affine transformation matrix.',
   );
+export type DichroicKubeState = z.input<typeof DichroicKubeStateSchema>;
+export type DichroicKubeStateOutput = z.infer<typeof DichroicKubeStateSchema>;
 
 export const FilterBankKubeStateSchema = z
   .object({
@@ -252,6 +268,10 @@ export const FilterBankKubeStateSchema = z
   .describe(
     'Data class representing metadata for a kube, including its ID and affine transformation matrix.',
   );
+export type FilterBankKubeState = z.input<typeof FilterBankKubeStateSchema>;
+export type FilterBankKubeStateOutput = z.infer<
+  typeof FilterBankKubeStateSchema
+>;
 
 export const ObjectiveTurretKubeStateSchema = z
   .object({
@@ -287,6 +307,12 @@ export const ObjectiveTurretKubeStateSchema = z
   .describe(
     'Data class representing metadata for a kube, including its ID and affine transformation matrix.',
   );
+export type ObjectiveTurretKubeState = z.input<
+  typeof ObjectiveTurretKubeStateSchema
+>;
+export type ObjectiveTurretKubeStateOutput = z.infer<
+  typeof ObjectiveTurretKubeStateSchema
+>;
 
 export const KubeUnionSchema = createIndexedUnion([
   ObjectiveKubeStateSchema.describe(
@@ -344,6 +370,8 @@ export const LightEdgeStateSchema = z
   .describe(
     'Data class representing the light path used for an image, including illumination settings.',
   );
+export type LightEdgeState = z.input<typeof LightEdgeStateSchema>;
+export type LightEdgeStateOutput = z.infer<typeof LightEdgeStateSchema>;
 
 export const LightPathStateSchema = z
   .object({
@@ -377,6 +405,8 @@ export const LightPathStateSchema = z
   .describe(
     'Data class representing the light path used for an image, including illumination settings.',
   );
+export type LightPathState = z.input<typeof LightPathStateSchema>;
+export type LightPathStateOutput = z.infer<typeof LightPathStateSchema>;
 
 export const MetadataSchema = z
   .object({
@@ -397,6 +427,8 @@ export const MetadataSchema = z
   .describe(
     'Data class representing metadata for an image, including its ID and affine transformation matrix.',
   );
+export type Metadata = z.input<typeof MetadataSchema>;
+export type MetadataOutput = z.infer<typeof MetadataSchema>;
 
 export const ImageSchema = z
   .object({
@@ -409,6 +441,8 @@ export const ImageSchema = z
   })
   .brand('image')
   .describe('Represents a single image captured by the detector.');
+export type Image = z.input<typeof ImageSchema>;
+export type ImageOutput = z.infer<typeof ImageSchema>;
 
 // --- Schemas ---
 export const ScanRegionArgsSchema = z.object({
@@ -450,7 +484,9 @@ export const ScanRegionReturnSchema = z.object({
 });
 
 // --- Types ---
-export type ScanRegionArgs = z.infer<typeof ScanRegionArgsSchema>;
+// Args is the INPUT type (what you construct and pass to the hook; useAction parses it).
+// Return is the OUTPUT type (what comes back, already parsed).
+export type ScanRegionArgs = z.input<typeof ScanRegionArgsSchema>;
 export type ScanRegionReturn = z.infer<typeof ScanRegionReturnSchema>;
 
 // --- Definition ---

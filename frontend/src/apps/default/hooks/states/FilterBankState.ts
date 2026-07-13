@@ -16,6 +16,8 @@ export const FilterSchema = z
   .describe(
     'Configuration for a single optical filter.\n\n    Attributes:\n        slot: Filter wheel slot number.\n        name: Human-readable filter name.\n        center_wavelength: Center wavelength of the filter passband (nm).\n        bandwidth: Full width at half maximum of the passband (nm).\n        transmission: Peak transmission efficiency (0.0 to 1.0).\n        is_active: Whether this filter is currently in the light path.\n    ',
   );
+export type Filter = z.input<typeof FilterSchema>;
+export type FilterOutput = z.infer<typeof FilterSchema>;
 
 // --- Main Schema ---
 export const FilterBankStateSchema = z.object({

@@ -12,7 +12,9 @@ export const FailingCameraReturnSchema = z.object({
 });
 
 // --- Types ---
-export type FailingCameraArgs = z.infer<typeof FailingCameraArgsSchema>;
+// Args is the INPUT type (what you construct and pass to the hook; useAction parses it).
+// Return is the OUTPUT type (what comes back, already parsed).
+export type FailingCameraArgs = z.input<typeof FailingCameraArgsSchema>;
 export type FailingCameraReturn = z.infer<typeof FailingCameraReturnSchema>;
 
 // --- Definition ---

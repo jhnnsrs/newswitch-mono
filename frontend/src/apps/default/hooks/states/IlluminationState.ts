@@ -19,6 +19,8 @@ export const IlluminationSchema = z
   .describe(
     'Shared state for illumination parameters.\n\n    Note: intensity is divided by 1000 in the detector for actual scaling,\n    so 10000.0 gives an effective intensity of 10.0.\n    ',
   );
+export type Illumination = z.input<typeof IlluminationSchema>;
+export type IlluminationOutput = z.infer<typeof IlluminationSchema>;
 
 // --- Main Schema ---
 export const IlluminationStateSchema = z.object({

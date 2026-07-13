@@ -24,6 +24,8 @@ export const DetectorSchema = z
   })
   .brand('detector')
   .describe('Shared state for detector parameters.');
+export type Detector = z.input<typeof DetectorSchema>;
+export type DetectorOutput = z.infer<typeof DetectorSchema>;
 
 // --- Main Schema ---
 export const CameraStateSchema = z.object({

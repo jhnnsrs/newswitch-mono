@@ -29,7 +29,9 @@ export const MoveStageArgsSchema = z.object({
 export const MoveStageReturnSchema = z.object({});
 
 // --- Types ---
-export type MoveStageArgs = z.infer<typeof MoveStageArgsSchema>;
+// Args is the INPUT type (what you construct and pass to the hook; useAction parses it).
+// Return is the OUTPUT type (what comes back, already parsed).
+export type MoveStageArgs = z.input<typeof MoveStageArgsSchema>;
 export type MoveStageReturn = z.infer<typeof MoveStageReturnSchema>;
 
 // --- Definition ---
