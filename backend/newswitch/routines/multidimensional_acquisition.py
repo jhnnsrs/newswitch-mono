@@ -6,7 +6,7 @@ from enum import Enum
 from rekuest_next import progress
 from rekuest_next import model
 from newswitch import protocols
-from newswitch.protocols.core import Frame, Image
+from newswitch.protocols.core import Frame
 from newswitch.protocols.hook_manager import Hook
 from rekuest_next.api.schema import ValidatorInput
 from rekuest_next.scalars import ValidatorFunction

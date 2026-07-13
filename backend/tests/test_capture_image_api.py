@@ -4,10 +4,8 @@ This module tests the image capture functionality through the FastAPI agent,
 verifying that captured images are properly saved and contain visible content.
 """
 
-import numpy as np
 import pytest
 from fastapi import FastAPI
-from PIL import Image
 from rekuest_next.contrib.fastapi import AsyncAgentTestClient
 
 

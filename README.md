@@ -1,6 +1,7 @@
 # newswitch
 
-A microscope control stack — "OpenUC2 but new". Two packages, one version, released together.
+"Imswitch but new". This repo bears almost no resemblance to the original codebase, but aims to provide a
+more web-stack-friendly, modern, and maintainable foundation for the same functionality.
 
 | | | |
 |---|---|---|
@@ -9,9 +10,11 @@ A microscope control stack — "OpenUC2 but new". Two packages, one version, rel
 
 ## Quickstart
 
+You need Python 3.11+ and Node 20+. The repo uses [just](https://just.systems/man/en/) for task automation. Install it, then:
+
 ```bash
 just install     # uv sync + yarn install
-just dev         # backend, then frontend -> http://localhost:5173
+just dev         # backend , then frontend (will autocodegen)-> http://localhost:5173
 ```
 
 Run `just` on its own to see every recipe.
@@ -24,18 +27,13 @@ The frontend is **generated from the backend**. On every `vite dev` and `vite bu
 `frontend/src/apps/default/**` along with `frontend/blok.json`.
 
 If the backend is **not** reachable, the codegen does **not** fail. It warns and silently falls back to
-the committed generated files. That is deliberate — it's what lets CI and the release build work with no
-backend running — but it means:
+the committed generated files. 
 
 > **If you start the frontend without the backend, you are developing against stale hooks and nothing will
 > stop you.** `just dev` sequences the two and warns loudly if the backend never came up.
 
 `frontend/blok.json` and `frontend/src/apps/default/**` are **committed on purpose**. Don't gitignore them.
 
-`blok.json` will show as modified after almost any `dev`/`build` — the plugin rewrites its `generatedAt`
-timestamp every run. Generated *sources* under `src/apps/default/**` can also churn without a real change
-(`hooks/locks/index.ts` in particular reorders its exports, because the backend doesn't guarantee a stable
-order). Both are expected noise; discard them if nothing else changed.
 
 ## Common recipes
 
@@ -64,9 +62,6 @@ Because the generator falls back silently, committed hooks can quietly diverge f
 result differs from what's committed. If it fails, run `just dev-backend`, then `cd frontend && yarn build`,
 and commit the regenerated output.
 
-The generator is deterministic: running it twice against the same backend rewrites nothing, and it only
-re-stamps `blok.json`'s `generatedAt` when the content actually changed.
-
 ### Commits
 
 Commit messages must be [conventional](https://www.conventionalcommits.org/) — `feat:`, `fix:`, `chore:`,
@@ -85,20 +80,6 @@ just logs
 Compose is the one path with **no schema race**: the frontend's `depends_on` waits on a backend
 healthcheck that probes the exact endpoint the codegen needs.
 
-Two things to know:
-
-- **Both containers run as uid 1000, not root** — deliberately. They bind-mount their source dir and
-  *write into it* (the frontend regenerates `src/apps/default/**`; the backend writes `agent_data.db`). As
-  root those files come out root-owned, and your host `yarn dev` then dies with
-  `EACCES: permission denied, unlink .../src/apps/default/hooks/actions/...`. uid 1000 matches a typical
-  Linux host user. If your host user isn't uid 1000, adjust the `USER` lines in the two Dockerfiles.
-- **After changing dependencies, `docker compose build` is not enough.** The venv and `node_modules` live
-  in named volumes (so the source bind-mount doesn't hide them), and those volumes survive a rebuild. Use
-  `just down-hard` to drop them, then `just up`.
-- **The backend has two different URLs inside Docker**, and they are not interchangeable. The codegen runs
-  *inside the frontend container* and reaches the backend at `http://backend:8099` (service name); the
-  client JS runs *in your browser on the host* and reaches it at `http://localhost:8099` (published port).
-  That split lives in `frontend/.env.docker`, which compose selects via `vite --mode docker`.
 
 ## Environment
 
@@ -117,7 +98,7 @@ The backend itself reads no `.env` — it's configured in code via `ImswitchConf
 
 ## Releases
 
-One version for the whole repo, one tag (`vX.Y.Z`), **GitHub Releases only** (nothing goes to PyPI or npm).
+One version for the whole repo, one tag (`vX.Y.Z`), **GitHub Releases only**.
 
 Pushing [conventional commits](https://www.conventionalcommits.org/) to `main` triggers
 `.github/workflows/release.yml`, which runs semantic-release from the root `release.config.cjs`. It bumps
@@ -147,12 +128,17 @@ in `--dry-run`). In CI, both the URL and the token come from the Actions checkou
 
 ## Known debt
 
-The frontend gates are green and **blocking** in CI (`yarn lint`, `yarn types`, `yarn test`, `yarn build`).
+All gates are green and **blocking** in CI: format, lint, types, tests, build (both halves), plus the
+codegen drift check.
 
 Two things are deliberately left unfinished, both marked `// TODO: not mounted` in
 `src/components/navigation/AppNavigationChrome.tsx`: `AppLatestChanges` (the only consumer of
-`latestPatches` — the README's "recent patches" surface) and `RouteNavigationBar` are written but never
-rendered. They were exported rather than deleted, because they're unfinished wiring, not dead code.
+`latestPatches` — the "recent patches" surface described above) and `RouteNavigationBar` are written but
+never rendered. They were exported rather than deleted, because they're unfinished wiring, not dead code.
 
-`just lint` still reports **ruff** findings on the backend (mostly missing docstrings). Backend linting
-is not yet wired into CI — nothing ever enforced it, so it starts from a backlog.
+Also unwired: `ObjectiveControl` subscribes to the toggle-objective action but no control in that panel
+calls it.
+
+Prettier is scoped: generated code (`src/apps/**`) and `plugins/**` are single-quoted to match what the
+generator emits; hand-written `src/` uses prettier's defaults. Changing that split will make the generator
+and the formatter fight, and the drift check will never pass.

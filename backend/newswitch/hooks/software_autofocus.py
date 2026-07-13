@@ -1,3 +1,5 @@
+"""Example software autofocus hook, sweeping z and stopping at the best focus metric."""
+
 from newswitch import protocols
 
 

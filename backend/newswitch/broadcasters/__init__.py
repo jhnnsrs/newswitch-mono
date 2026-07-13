@@ -3,7 +3,6 @@ Broadcasters for video frame streaming.
 """
 
 from .frame import FrameBroadcaster
-from .encoders.zstd_encoder import ZstdEncoderConfig
 from .encoders.config import EncoderConfig, H264EncoderConfig, ZstdEncoderConfig
 
 __all__ = [

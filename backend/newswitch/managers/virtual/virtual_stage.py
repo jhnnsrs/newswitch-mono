@@ -69,6 +69,11 @@ class VirtualStageManager:
         step_size: Optional[float] = None,
         is_absolute: bool = False,
     ) -> None:
+        """Move the stage to an absolute or relative target position.
+
+        The travel is simulated in increments of `step_size` micrometers, sleeping between
+        steps and clamping to the configured axis limits.
+        """
         if step_size is None:
             step_size = 10.0
 

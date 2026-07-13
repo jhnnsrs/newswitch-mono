@@ -1,3 +1,5 @@
+"""Core domain types: the kubes making up a light path, and the images and metadata it produces."""
+
 from dataclasses import dataclass
 from typing import Protocol
 from rekuest_next import model, model_field

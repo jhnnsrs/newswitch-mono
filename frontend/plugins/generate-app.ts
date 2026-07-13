@@ -256,7 +256,14 @@ const getPrettierOptions = () => {
 };
 
 const formatTypeScript = async (content: string) =>
-  prettier.format(content, await getPrettierOptions());
+  prettier.format(content, {
+    ...(await getPrettierOptions()),
+    // `filepath` is load-bearing, not cosmetic: with only `parser: 'typescript'` prettier
+    // assumes the source might be .tsx and guards the ambiguity by emitting `<T,>` in
+    // generic arrow functions. The prettier CLI, which knows the file is .ts, emits `<T>`.
+    // Without this the generator and `prettier --check` disagree forever.
+    filepath: 'generated.ts',
+  });
 
 const formatAndWrite = async (filePath: string, content: string) => {
   const formatted = await formatTypeScript(content);

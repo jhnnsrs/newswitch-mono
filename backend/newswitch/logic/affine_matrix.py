@@ -1,3 +1,5 @@
+"""Estimation and validation of the 3D affine matrix mapping pixel to stage coordinates."""
+
 import numpy as np
 from dataclasses import dataclass
 from typing import List
@@ -10,6 +12,8 @@ from newswitch.protocols.detector import Detector
 
 @dataclass
 class AffineMatrix:
+    """A fitted 4x4 pixel-to-stage affine matrix together with its least-squares fit quality."""
+
     matrix: np.ndarray
     residuals: np.ndarray
     rank: int
@@ -84,6 +88,8 @@ class CalibrationMetrics:
 
 @dataclass
 class ValidationResult:
+    """Outcome of the calibration sanity checks run against a fitted affine matrix."""
+
     is_valid: bool
     summary: str
     metrics: CalibrationMetrics

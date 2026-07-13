@@ -129,7 +129,10 @@ def acquisition_setup(
         led = VirtualLEDManager(
             illumination_state=illumination_state,
         )
-        filter_bank = VirtualFilterBankManager(filter_bank_state=filter_bank_state)
+        # Constructed for its side effect: __init__ populates `filter_bank_state` with the
+        # default filters and activates the default slot, which the light path and metadata
+        # managers below depend on. The manager itself is not otherwise used by the tests.
+        _filter_bank = VirtualFilterBankManager(filter_bank_state=filter_bank_state)
 
         objective = VirtualObjectiveManager(
             objective_state=objective_state,

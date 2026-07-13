@@ -1,3 +1,5 @@
+"""Serial manager talking JSON commands to the UC2 ESP32 board, plus mock handlers for it."""
+
 import asyncio
 from typing import AsyncGenerator, Dict
 
@@ -19,12 +21,16 @@ from newswitch.protocols.stage import StageState
 
 
 class MockHandler(Protocol):
+    """A stand-in for the ESP32 that answers a command by pushing to the response/state queues."""
+
     async def __call__(
         self,
         command: JSONCommand,
         response_queue: asyncio.Queue[JSONResponse],
         state_queue: asyncio.Queue[StateUpdate],
-    ) -> None: ...
+    ) -> None:
+        """Handle the command, emitting its response and any resulting state updates."""
+        ...
 
 
 async def mock_handle_move_state(
@@ -192,6 +198,11 @@ class UC2SerialManager:
         pause_command: JSONCommand | None = None,
         unpause_command: JSONCommand | None = None,
     ) -> JSONResponse:
+        """Send a command to the ESP32 and await its response.
+
+        Installs pause/unpause actor hooks when those commands are given, and sends
+        `cancel_command` to the board if the awaiting task is cancelled.
+        """
         # We install actor-hooks for pausing and unpausing if they are provided. These hooks can be triggered by the actor to pause or unpause the command execution.
         if pause_command:
             install_hook(self.create_pause_hook(pause_command))

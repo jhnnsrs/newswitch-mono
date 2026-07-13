@@ -1,21 +1,10 @@
-from typing import Protocol
+"""Protocol interfaces for frame encoders and their per-subscriber output streams."""
 
-from newswitch.broadcasters.encoders.config import EncoderConfig
-
-
-"""
-High-performance frame broadcaster for low-latency video streaming.
-
-Optimized for minimal latency with:
-- Lock-free broadcasting using thread-safe primitives
-- Zero-copy frame references where possible
-- Automatic frame dropping to prevent queue backlog
-- Integrated Zstd and H.264 encoding for WebSocket streaming
-- Shared encoders for clients with matching configurations
-"""
-from typing import Optional
+from typing import Optional, Protocol
 
 import numpy as np
+
+from newswitch.broadcasters.encoders.config import EncoderConfig
 
 
 class EncoderSubscriptionProtocol(Protocol):

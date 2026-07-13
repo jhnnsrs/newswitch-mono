@@ -1,3 +1,5 @@
+"""Configuration dataclasses for the Zstd and H.264 frame encoders."""
+
 from dataclasses import dataclass
 
 

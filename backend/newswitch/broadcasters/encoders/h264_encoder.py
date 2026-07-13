@@ -1,3 +1,5 @@
+"""Shared async H.264 encoder that pipes frames through an ffmpeg subprocess."""
+
 from koil import unkoil
 
 from .config import H264EncoderConfig

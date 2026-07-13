@@ -33,6 +33,8 @@ from .cache import CacheManager
 __all__ = [
     # Managers
     "AcquistionManager",
+    # Cache
+    "CacheManager",
     # Stage
     "LightPath",
     "Metadata",

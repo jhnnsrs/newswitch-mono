@@ -117,6 +117,7 @@ class FrameBroadcaster:
         return await encoder.asubscribe(detector_slot)
 
     async def arelease_subscription(self, subscription: EncoderSubscriptionProtocol) -> None:
+        """Unsubscribe from its shared encoder, stopping the encoder if it was the last one."""
         key = (subscription.detector_slot, subscription.config)
 
         with self._encoder_lock:

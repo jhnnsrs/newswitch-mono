@@ -41,6 +41,8 @@ from newswitch.protocols.stage import StageState
 
 
 class KubeLike(Protocol):
+    """Structural type for any kube whose identifying and calibration fields can be serialized."""
+
     kube_id: str
     affine_matrix: AffineMatrix
     model_file: str | None

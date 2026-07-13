@@ -106,6 +106,11 @@ class ZstdEncoder:
         return self._compressor.compress(payload.tobytes())
 
     def encode_frame(self, frame: np.ndarray) -> None:
+        """Compress a frame and push the resulting chunk to every subscriber.
+
+        Does nothing if the encoder is not running, and silently drops the frame if
+        compression fails.
+        """
         if not self._running:
             return
 

@@ -1,3 +1,5 @@
+"""Base protocols shared by every microscope manager."""
+
 from typing import Protocol, runtime_checkable
 
 

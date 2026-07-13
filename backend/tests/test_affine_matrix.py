@@ -1,3 +1,5 @@
+"""Tests for fitting and validating the 3D affine matrix from virtual detector images."""
+
 from typing import Generator
 import useq as us
 import numpy as np

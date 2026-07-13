@@ -1,3 +1,5 @@
+"""Routine for scanning a rectangular region as a tiled grid of stage positions."""
+
 import math
 from enum import Enum
 from typing import Annotated
