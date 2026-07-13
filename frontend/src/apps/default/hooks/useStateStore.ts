@@ -3,6 +3,6 @@ import {
   type GlobalStateStore,
 } from '@/lib/rekuest/state';
 
-export const useStateStore = <TSelected,>(
+export const useStateStore = <TSelected>(
   selector: (state: GlobalStateStore) => TSelected,
 ): TSelected => useBaseStateStore('default', selector);

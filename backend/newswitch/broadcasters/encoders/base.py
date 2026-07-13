@@ -18,7 +18,6 @@ from typing import Optional
 import numpy as np
 
 
-
 class EncoderSubscriptionProtocol(Protocol):
     """Subscription to a shared Zstd encoder's output stream."""
 

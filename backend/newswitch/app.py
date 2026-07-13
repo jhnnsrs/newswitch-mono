@@ -427,9 +427,7 @@ def move_home(stage: StageManager, state: StageState) -> None:
 )
 def kill_benedict(stage: StageManager, kill_hard: str, die_young: bool) -> None:
     """A function that simulates a critical failure to test error handling and lock release."""
-    raise RuntimeError(
-        "Benedict has been killed. This is a simulated critical failure."
-    )
+    raise RuntimeError("Benedict has been killed. This is a simulated critical failure.")
 
 
 @register
@@ -574,9 +572,7 @@ def never_ending_function() -> None:
 
 
 @register
-def switch_objective(
-    objective: ObjectiveManager, state: ObjectiveState, slot: int
-) -> None:
+def switch_objective(objective: ObjectiveManager, state: ObjectiveState, slot: int) -> None:
     """
     Switch to a specific objective slot.
 
@@ -614,9 +610,7 @@ def switch_filter(
 
 
 @register
-def toggle_filter(
-    filter_bank: FilterBankManager, state: FilterBankState
-) -> protocols.Filter:
+def toggle_filter(filter_bank: FilterBankManager, state: FilterBankState) -> protocols.Filter:
     """Toggle to the next filter in the wheel.
 
     Returns:

@@ -55,9 +55,7 @@ class H264Encoder:
         """Create a new subscription to this encoder's output."""
         async with self._lock:
             self._subscriber_id += 1
-            sub = EncoderSubscription(
-                self, sub_id=self._subscriber_id, detector_slot=detector_slot
-            )
+            sub = EncoderSubscription(self, sub_id=self._subscriber_id, detector_slot=detector_slot)
             self._subscribers[self._subscriber_id] = sub
             return sub
 

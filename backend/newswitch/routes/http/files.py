@@ -108,6 +108,4 @@ def _get_media_type(file_path: str) -> str:
         ".jpeg": "image/jpeg",
     }
 
-    return media_types.get(
-        ext, mimetypes.guess_type(file_path)[0] or "application/octet-stream"
-    )
+    return media_types.get(ext, mimetypes.guess_type(file_path)[0] or "application/octet-stream")
