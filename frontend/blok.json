@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T14:08:42.057Z",
+  "generatedAt": "2026-07-13T15:26:41.531Z",
   "app": {
     "description": "",
     "name": "newswitch",
@@ -10,7 +10,7 @@
     },
     "startPage": "/index.html",
     "type": "module",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "apps": {
     "default": {

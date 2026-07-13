@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.11, <4.0"
 resolution-markers = [
     "python_full_version >= '3.14'",
@@ -837,7 +837,7 @@ wheels = [
 
 [[package]]
 name = "newswitch"
-version = "1.0.0"
+version = "1.0.1"
 source = { editable = "." }
 dependencies = [
     { name = "aiosqlite" },
@@ -1953,10 +1953,10 @@ resolution-markers = [
     "python_full_version >= '3.14'",
 ]
 dependencies = [
-    { name = "numpy", marker = "python_full_version >= '3.14'" },
-    { name = "pydantic", marker = "python_full_version >= '3.14'" },
-    { name = "shapely", marker = "python_full_version >= '3.14'" },
-    { name = "typing-extensions", marker = "python_full_version >= '3.14'" },
+    { name = "numpy" },
+    { name = "pydantic" },
+    { name = "shapely" },
+    { name = "typing-extensions" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/e8/d2/25f30a99cef27a99f3081c5a453d7189fa732fe677b6ea79d0ae325e348a/useq_schema-0.8.1.tar.gz", hash = "sha256:5628d5b3adde38b4baeb0a89f6fe67ca35a163444f485e13339e5c24aa22ca56", size = 69008, upload-time = "2025-08-15T20:17:21.392Z" }
 wheels = [
@@ -1973,10 +1973,10 @@ resolution-markers = [
     "python_full_version < '3.12'",
 ]
 dependencies = [
-    { name = "numpy", marker = "python_full_version < '3.14'" },
-    { name = "pydantic", marker = "python_full_version < '3.14'" },
-    { name = "shapely", marker = "python_full_version < '3.14'" },
-    { name = "typing-extensions", marker = "python_full_version < '3.14'" },
+    { name = "numpy" },
+    { name = "pydantic" },
+    { name = "shapely" },
+    { name = "typing-extensions" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/a6/d6/6e458ca25e07b726956e1edd7fb57f0bd762af733cc184d3c580d463a62a/useq_schema-0.8.2.tar.gz", hash = "sha256:76daf878a0c4750ce900b419c3c6a0866e05a88e7bb39e495655453a6d396c97", size = 69035, upload-time = "2025-12-01T21:06:40.623Z" }
 wheels = [

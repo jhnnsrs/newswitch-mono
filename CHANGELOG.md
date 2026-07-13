@@ -1,3 +1,5 @@
+## [1.0.1](https://github.com/jhnnsrs/newswitch-mono/compare/v1.0.0...v1.0.1) (2026-07-13)
+
 ## 1.0.0 (2026-07-13)
 
 # CHANGELOG
