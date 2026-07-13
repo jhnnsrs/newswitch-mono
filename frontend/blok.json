@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T14:00:27.789Z",
+  "generatedAt": "2026-07-13T14:04:00.450Z",
   "app": {
     "name": "newswitch",
     "version": "1.0.0",
@@ -2515,12 +2515,12 @@
             "stage_position"
           ],
           "manipulates": [
+            "CameraState",
             "ExpanseState",
-            "FilterBankState",
             "IlluminationState",
             "ObjectiveState",
-            "CameraState",
-            "StageState"
+            "StageState",
+            "FilterBankState"
           ],
           "extension": null
         },

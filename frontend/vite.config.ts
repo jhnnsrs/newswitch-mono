@@ -27,6 +27,17 @@ export default defineConfig(({ mode }) => {
       }),
       tailwindcss(),
     ],
+    // Listen on every interface and accept any Host header, so the dev server is reachable
+    // by hostname / LAN IP / tailscale name, not just localhost. This turns off Vite's
+    // DNS-rebinding protection - fine for a lab dev server, don't expose it to the internet.
+    server: {
+      host: true,
+      allowedHosts: true,
+    },
+    preview: {
+      host: true,
+      allowedHosts: true,
+    },
     resolve: {
       alias: [
         {

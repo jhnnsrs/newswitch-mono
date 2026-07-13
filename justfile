@@ -20,8 +20,9 @@ dev-backend:
     cd backend && uv run test.py
 
 # Frontend only -> http://localhost:5173 (needs the backend up for fresh codegen)
+# Binding + allowedHosts live in vite.config.ts, so no --host flag needed here.
 dev-frontend:
-    cd frontend && yarn dev --host
+    cd frontend && yarn dev
 
 # Block until the backend's schema endpoints answer
 wait-backend url=BACKEND_HEALTH:
@@ -45,7 +46,7 @@ dev:
       echo "!! backend unreachable - vite will fall back to the COMMITTED generated hooks" >&2
       echo "!! (see frontend/plugins/generate-app.ts: fetch failures are warnings, not errors)" >&2
     fi
-    (cd frontend && exec yarn dev --host) &
+    (cd frontend && exec yarn dev) &
     wait
 
 # ---------- quality ----------
