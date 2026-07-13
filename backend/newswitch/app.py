@@ -121,6 +121,8 @@ async def provide_managers(
     ObjectiveState,
     FilterBankState,
     IOState,
+    SerialState,
+    protocols.HookState,
     protocols.ExpanseState,
     CalibrationState,
     protocols.LightPathState,
@@ -197,6 +199,8 @@ async def provide_managers(
 
     calibration_manager = CalibrationManager(calibration_state=calibration_state)
 
+    hook_state = protocols.HookState()
+
     hook_manager = PythonHookManager(
         protocols.HookContext(
             stage_manager=stage,
@@ -264,6 +268,8 @@ async def provide_managers(
         objective_state,
         filter_bank_state,
         io_state,
+        serial_state,
+        hook_state,
         expanse_state,
         calibration_state,
         light_path_state,

@@ -474,7 +474,14 @@ export const ScanRegionArgsSchema = z.object({
   end_x: z.number(),
   end_y: z.number(),
   overlap: z.number().nullable().optional(),
-  detector_slot: z.number().nullable().optional(),
+  /** The detector to calculate the FOV for (all other detectors will follow). If None, use the first active detector. */
+  detector_slot: z
+    .number()
+    .describe(
+      'The detector to calculate the FOV for (all other detectors will follow). If None, use the first active detector.',
+    )
+    .nullable()
+    .optional(),
 });
 export const ScanRegionReturnSchema = z.object({
   /** List of acquired images with metadata. */

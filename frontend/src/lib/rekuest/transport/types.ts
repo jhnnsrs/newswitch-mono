@@ -31,7 +31,7 @@ export interface Task<TArgs = unknown, TReturn = unknown> {
 }
 
 export interface TaskView {
-  assignation: string;
+  task: string;
   action_key: string;
   interface: string | null;
   extension: string | null;
@@ -89,15 +89,12 @@ export interface HookInput {
 export interface AssignInput<TArgs = unknown> {
   args: TArgs;
   policy?: AssignPolicy;
-  instanceId?: string;
-  action?: string;
   dependency?: string;
   resolution?: string;
   implementation?: string;
   agent?: string;
   actionHash?: string;
   method?: string;
-  reservation?: string;
   interface?: string;
   hooks?: HookInput[];
   reference?: string;
@@ -115,7 +112,6 @@ export interface AssignOptions {
   notify?: boolean;
   policy?: AssignPolicy;
   agent?: string;
-  reservation?: string;
   reference?: string;
   parent?: string;
   cached?: boolean;
@@ -173,8 +169,6 @@ export interface StateCheckoutResponse<T = unknown> {
 export interface RetrieverPatchEventResponse {
   timepoint: string;
   state_id: string;
-  current_rev: number;
-  future_rev: number;
   global_current_rev: number;
   global_future_rev: number;
   correlation_id: string;
@@ -202,20 +196,18 @@ export interface LockCollectionResponse {
 export type LogLevel = "DEBUG" | "INFO" | "ERROR" | "WARN" | "CRITICAL";
 
 export const TaskEventType = {
-  TASK_INIT: "TASK_INIT",
   REGISTER: "REGISTER",
   LOG: "LOG",
   PROGRESS: "PROGRESS",
-  DONE: "DONE",
+  STARTED: "STARTED",
+  COMPLETED: "COMPLETED",
   YIELD: "YIELD",
-  ERROR: "ERROR",
+  FAILED: "FAILED",
   PAUSED: "PAUSED",
   CRITICAL: "CRITICAL",
-  STEPPED: "STEPPED",
   RESUMED: "RESUMED",
   CANCELLED: "CANCELLED",
   APP_CANCELLED: "APP_CANCELLED",
-  ASSIGNED: "ASSIGNED",
   INTERRUPTED: "INTERRUPTED",
   HEARTBEAT_ANSWER: "HEARTBEAT_ANSWER",
 } as const;
@@ -240,29 +232,6 @@ export type LockEventType = (typeof LockEventType)[keyof typeof LockEventType];
 export const FromAgentMessageType = TaskEventType;
 export type FromAgentMessageType = TaskEventType;
 
-export const ToAgentMessageType = {
-  ASSIGN: "ASSIGN",
-  CANCEL: "CANCEL",
-  STEP: "STEP",
-  COLLECT: "COLLECT",
-  RESUME: "RESUME",
-  PAUSE: "PAUSE",
-  INTERRUPT: "INTERRUPT",
-  PROVIDE: "PROVIDE",
-  UNPROVIDE: "UNPROVIDE",
-  INIT: "INIT",
-  HEARTBEAT: "HEARTBEAT",
-  BOUNCE: "BOUNCE",
-  KICK: "KICK",
-  PROTOCOL_ERROR: "PROTOCOL_ERROR",
-  LISTEN_STATES: "LISTEN_STATES",
-  LISTEN_LOCKS: "LISTEN_LOCKS",
-  LISTEN_TASKS: "LISTEN_TASKS",
-} as const;
-
-export type ToAgentMessageType =
-  (typeof ToAgentMessageType)[keyof typeof ToAgentMessageType];
-
 export interface BaseMessage {
   id: string;
   type: string;
@@ -270,64 +239,65 @@ export interface BaseMessage {
 
 export interface LogEvent extends BaseMessage {
   type: typeof TaskEventType.LOG;
-  assignation: string;
+  task: string;
   message: string;
   level: LogLevel;
 }
 
 export interface ProgressEvent extends BaseMessage {
   type: typeof TaskEventType.PROGRESS;
-  assignation: string;
+  task: string;
   progress?: number;
   message?: string;
 }
 
+export interface StartedEvent extends BaseMessage {
+  type: typeof TaskEventType.STARTED;
+  task: string;
+}
+
 export interface YieldEvent extends BaseMessage {
   type: typeof TaskEventType.YIELD;
-  assignation: string;
+  task: string;
   returns?: Record<string, unknown>;
 }
 
-export interface DoneEvent extends BaseMessage {
-  type: typeof TaskEventType.DONE;
-  assignation: string;
+export interface CompletedEvent extends BaseMessage {
+  type: typeof TaskEventType.COMPLETED;
+  task: string;
   returns?: Record<string, unknown>;
 }
 
-export interface ErrorEvent extends BaseMessage {
-  type: typeof TaskEventType.ERROR;
-  assignation: string;
+export interface FailedEvent extends BaseMessage {
+  type: typeof TaskEventType.FAILED;
+  task: string;
   error: string;
 }
 
 export interface CriticalEvent extends BaseMessage {
   type: typeof TaskEventType.CRITICAL;
-  assignation: string;
+  task: string;
   error: string;
 }
 
 export interface PausedEvent extends BaseMessage {
   type: typeof TaskEventType.PAUSED;
-  assignation: string;
+  task: string;
 }
 
 export interface ResumedEvent extends BaseMessage {
   type: typeof TaskEventType.RESUMED;
-  assignation: string;
-}
-
-export interface SteppedEvent extends BaseMessage {
-  type: typeof TaskEventType.STEPPED;
+  task: string;
 }
 
 export interface CancelledEvent extends BaseMessage {
   type: typeof TaskEventType.CANCELLED;
-  assignation: string;
+  task: string;
 }
 
 export interface InterruptedEvent extends BaseMessage {
   type: typeof TaskEventType.INTERRUPTED;
-  assignation: string;
+  task: string;
 }
 
 export interface HeartbeatAnswerEvent extends BaseMessage {
@@ -338,12 +308,6 @@ export interface RegisterMessage extends BaseMessage {
   type: typeof TaskEventType.REGISTER;
   instance_id: string;
   token: string;
-}
-
-export interface TaskInitMessage extends BaseMessage {
-  type: typeof TaskEventType.TASK_INIT;
-  count: number;
-  tasks: Record<string, TaskView>;
 }
 
 export interface WebSocketInitMessage extends BaseMessage {
@@ -384,13 +348,13 @@ export interface StatePatchEvent {
   path: string;
   value?: unknown;
   old_value?: string;
-  correlation_id: string;
+  task_id?: string;
 }
 
 export interface LockEvent {
   type: typeof LockEventType.LOCK;
   key: string;
-  assignation: string;
+  task: string;
 }
 
 export interface UnlockEvent {
@@ -400,16 +364,15 @@ export interface UnlockEvent {
 
 export type TaskEvent =
   | WebSocketInitMessage
-  | TaskInitMessage
   | LogEvent
   | ProgressEvent
+  | StartedEvent
   | YieldEvent
-  | DoneEvent
-  | ErrorEvent
+  | CompletedEvent
+  | FailedEvent
   | CriticalEvent
   | PausedEvent
   | ResumedEvent
-  | SteppedEvent
   | CancelledEvent
   | LockEvent
   | UnlockEvent
@@ -426,100 +389,6 @@ export type FromAgentMessage =
   | LockEventMessage
   | StateUpdateEvent
   | StatePatchEvent;
-
-export interface AssignMessage extends BaseMessage {
-  type: typeof ToAgentMessageType.ASSIGN;
-  interface: string;
-  extension: string;
-  reservation?: string;
-  assignation: string;
-  root?: string;
-  parent?: string;
-  resolution?: string;
-  capture: boolean;
-  reference?: string;
-  args: Record<string, unknown>;
-  message?: string;
-  user: string;
-  org?: string;
-  app: string;
-  action: string;
-}
-
-export interface CancelMessage extends BaseMessage {
-  type: typeof ToAgentMessageType.CANCEL;
-  assignation: string;
-}
-
-export interface PauseMessage extends BaseMessage {
-  type: typeof ToAgentMessageType.PAUSE;
-  assignation: string;
-}
-
-export interface ResumeMessage extends BaseMessage {
-  type: typeof ToAgentMessageType.RESUME;
-  assignation: string;
-}
-
-export interface InterruptMessage extends BaseMessage {
-  type: typeof ToAgentMessageType.INTERRUPT;
-  assignation: string;
-}
-
-export interface StepMessage extends BaseMessage {
-  type: typeof ToAgentMessageType.STEP;
-  assignation: string;
-}
-
-export interface CollectMessage extends BaseMessage {
-  type: typeof ToAgentMessageType.COLLECT;
-  drawers: string[];
-}
-
-export interface HeartbeatMessage extends BaseMessage {
-  type: typeof ToAgentMessageType.HEARTBEAT;
-}
-
-export interface AssignInquiry {
-  assignation: string;
-}
-
-export interface InitMessage extends BaseMessage {
-  type: typeof ToAgentMessageType.INIT;
-  instance_id: string;
-  agent: string;
-  inquiries: AssignInquiry[];
-}
-
-export interface BounceMessage extends BaseMessage {
-  type: typeof ToAgentMessageType.BOUNCE;
-  duration?: number;
-}
-
-export interface KickMessage extends BaseMessage {
-  type: typeof ToAgentMessageType.KICK;
-  reason?: string;
-}
-
-export interface ProtocolErrorMessage extends BaseMessage {
-  type: typeof ToAgentMessageType.PROTOCOL_ERROR;
-  error: string;
-}
-
-export interface ListenStatesMessage {
-  type: typeof ToAgentMessageType.LISTEN_STATES;
-  states: string[];
-}
-
-export interface ListenLocksMessage {
-  type: typeof ToAgentMessageType.LISTEN_LOCKS;
-  locks: string[];
-}
-
-export interface ListenTasksMessage {
-  type: typeof ToAgentMessageType.LISTEN_TASKS;
-  tasks: string[];
-}
 
 export interface WebSocketSubscriptionInit {
   type?: string | null;
@@ -543,23 +412,6 @@ export interface TransportSocketConnectionState {
 export interface TransportMessageSubscription {
   unsubscribe: () => void;
 }
-
-export type ToAgentMessage =
-  | AssignMessage
-  | CancelMessage
-  | PauseMessage
-  | ResumeMessage
-  | InterruptMessage
-  | StepMessage
-  | CollectMessage
-  | HeartbeatMessage
-  | InitMessage
-  | BounceMessage
-  | KickMessage
-  | ProtocolErrorMessage
-  | ListenStatesMessage
-  | ListenLocksMessage
-  | ListenTasksMessage;
 
 export type SessionBoundaries = {
   sessionStart: Date;

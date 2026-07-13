@@ -101,44 +101,80 @@ function normalizeError(error: unknown, key: string): Error {
   return new Error(`Failed to fetch ${key}`);
 }
 
+interface PartialValidation {
+  snapshotMap: RevisedStatesSnapshotMap;
+  errors: Record<string, Error>;
+}
+
+/**
+ * Validates each state on its own, so one state whose payload disagrees with its schema cannot keep
+ * the others from hydrating. Callers that can recover from a bad snapshot as a whole (by refetching)
+ * should use `validateSnapshots`, which throws instead.
+ */
+function validateSnapshotsPartial(
+  appKey: string,
+  globalRevisionId: string | number,
+  snapshotMap: RevisedStatesSnapshotMap,
+  definitions: StateContextValue["definitions"],
+): PartialValidation {
+  const validated: RevisedStatesSnapshotMap = {};
+  const errors: Record<string, Error> = {};
+
+  for (const [stateKey, revisedState] of Object.entries(snapshotMap)) {
+    const definition = definitions[getScopedStateKey(appKey, stateKey)];
+
+    if (!definition) {
+      validated[stateKey] = revisedState;
+      continue;
+    }
+
+    const parsed = definition.schema.safeParse(revisedState.value);
+
+    if (!parsed.success) {
+      console.error(
+        `[BundleProvider] Checkout validation failed for ${appKey}.${stateKey}`,
+        {
+          error: parsed.error,
+          value: revisedState.value,
+          globalRevisionId,
+        },
+      );
+
+      errors[stateKey] = new Error(
+        `Checkout validation failed for ${appKey}.${stateKey}: ${parsed.error.message}`,
+      );
+      continue;
+    }
+
+    validated[stateKey] = {
+      value: parsed.data,
+      revision: revisedState.revision,
+    };
+  }
+
+  return { snapshotMap: validated, errors };
+}
+
 function validateSnapshots(
   appKey: string,
   globalRevisionId: string | number,
   snapshotMap: RevisedStatesSnapshotMap,
   definitions: StateContextValue["definitions"],
 ): RevisedStatesSnapshotMap {
-  return Object.fromEntries(
-    Object.entries(snapshotMap).map(([stateKey, revisedState]) => {
-      const definition = definitions[getScopedStateKey(appKey, stateKey)];
+  const { snapshotMap: validated, errors } = validateSnapshotsPartial(
+    appKey,
+    globalRevisionId,
+    snapshotMap,
+    definitions,
+  );
 
-      if (!definition) {
-        return [stateKey, revisedState];
-      }
+  const firstError = Object.values(errors)[0];
 
-      const parsed = definition.schema.safeParse(revisedState.value);
+  if (firstError) {
+    throw firstError;
+  }
 
-      if (!parsed.success) {
-        console.error(
-          `[BundleProvider] Checkout validation failed for ${appKey}.${stateKey}`,
-          {
-            error: parsed.error,
-            value: revisedState.value,
-            globalRevisionId,
-          },
-        );
-
-        throw new Error(`Checkout validation failed for ${appKey}.${stateKey}`);
-      }
-
-      return [
-        stateKey,
-        {
-          value: parsed.data,
-          revision: revisedState.revision,
-        },
-      ];
-    }),
-  ) as RevisedStatesSnapshotMap;
+  return validated;
 }
 
 function toSnapshotMapFromCollection(
@@ -147,6 +183,7 @@ function toSnapshotMapFromCollection(
 ): RevisedStatesSnapshotMap {
   const requestedStateKeys = stateKeys ?? Object.keys(response.states);
   const snapshotMap: RevisedStatesSnapshotMap = {};
+  const revision = response.current_global_revision ?? 0;
 
   for (const stateKey of requestedStateKeys) {
     const stateView = response.states[stateKey];
@@ -157,7 +194,7 @@ function toSnapshotMapFromCollection(
 
     snapshotMap[stateKey] = {
       value: stateView.value,
-      revision: stateView.local_revision,
+      revision,
     };
   }
 
@@ -168,11 +205,11 @@ function normalizeTaskView(appKey: AppKey, taskView: TaskView): Task {
   const now = new Date();
 
   return {
-    id: taskView.assignation,
+    id: taskView.task,
     appKey,
     action: taskView.action ?? taskView.action_key,
     args: {},
-    reference: taskView.assignation,
+    reference: taskView.task,
     status: taskView.running ? "running" : "submitted",
     createdAt: now,
     updatedAt: now,
@@ -333,12 +370,19 @@ export function BundleProvider({ children }: BundleProviderProps) {
               switch (message.type) {
                 case "INIT": {
                   const initMessage = message as WebSocketInitMessage;
-                  const snapshotMap = validateSnapshots(
+                  const { snapshotMap, errors } = validateSnapshotsPartial(
                     appKey,
                     initMessage.states.current_global_revision ?? "current",
                     toSnapshotMapFromCollection(initMessage.states),
                     definitions,
                   );
+
+                  Object.entries(errors).forEach(([stateKey, error]) => {
+                    stateStore.setError(
+                      stateKey,
+                      normalizeError(error, stateKey),
+                    );
+                  });
 
                   stateStore.setStateSnapshots(
                     snapshotMap,
@@ -371,40 +415,44 @@ export function BundleProvider({ children }: BundleProviderProps) {
                   stateStore.setState(message.state, message.value);
                   return;
                 case StateEventType.STATE_PATCH:
-                  stateStore.applyPatch(message);
+                  stateStore.applyPatch(
+                    message,
+                    definitions[getScopedStateKey(appKey, message.state_name)]
+                      ?.schema,
+                  );
                   return;
                 case LockEventType.LOCK:
-                  lockStore.setLock(message.key, message.assignation);
+                  lockStore.setLock(message.key, message.task);
                   return;
                 case LockEventType.UNLOCK:
                   lockStore.setLock(message.key, undefined);
                   return;
-                case TaskEventType.TASK_INIT:
-                  taskStore.upsertTasks(
-                    normalizeTaskCollection(appKey, message),
-                  );
+                case TaskEventType.STARTED:
+                  taskStore.updateTask(message.task, {
+                    status: "running",
+                  });
                   return;
                 case TaskEventType.PROGRESS:
-                  taskStore.updateTask(message.assignation, {
+                  taskStore.updateTask(message.task, {
                     status: "running",
                     progress: message.progress,
                     progressMessage: message.message,
                   });
                   return;
                 case TaskEventType.YIELD:
-                  taskStore.updateTask(message.assignation, {
+                  taskStore.updateTask(message.task, {
                     status: "running",
                     result: message.returns,
                   });
                   return;
-                case TaskEventType.DONE: {
-                  const existingTask = taskStore.getTask(message.assignation);
+                case TaskEventType.COMPLETED: {
+                  const existingTask = taskStore.getTask(message.task);
                   if (existingTask?.notify) {
                     toast.success(`Task completed: ${existingTask.action}`, {
-                      description: `Task ${message.assignation} finished successfully`,
+                      description: `Task ${message.task} finished successfully`,
                     });
                   }
-                  taskStore.updateTask(message.assignation, {
+                  taskStore.updateTask(message.task, {
                     status: "completed",
                     ...("returns" in message && message.returns !== undefined
                       ? { result: message.returns }
@@ -412,36 +460,36 @@ export function BundleProvider({ children }: BundleProviderProps) {
                   });
                   return;
                 }
-                case TaskEventType.ERROR:
-                  taskStore.updateTask(message.assignation, {
+                case TaskEventType.FAILED:
+                  taskStore.updateTask(message.task, {
                     status: "failed",
                     error: message.error,
                   });
                   return;
                 case TaskEventType.CRITICAL:
-                  taskStore.updateTask(message.assignation, {
+                  taskStore.updateTask(message.task, {
                     status: "failed",
                     error: message.error,
                   });
                   toast.error(`Critical error in task: ${message.error}`);
                   return;
                 case TaskEventType.PAUSED:
-                  taskStore.updateTask(message.assignation, {
+                  taskStore.updateTask(message.task, {
                     status: "paused",
                   });
                   return;
                 case TaskEventType.RESUMED:
-                  taskStore.updateTask(message.assignation, {
+                  taskStore.updateTask(message.task, {
                     status: "running",
                   });
                   return;
                 case TaskEventType.CANCELLED:
-                  taskStore.updateTask(message.assignation, {
+                  taskStore.updateTask(message.task, {
                     status: "cancelled",
                   });
                   return;
                 case TaskEventType.INTERRUPTED:
-                  taskStore.updateTask(message.assignation, {
+                  taskStore.updateTask(message.task, {
                     status: "interrupted",
                   });
                   return;

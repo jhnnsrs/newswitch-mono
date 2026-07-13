@@ -241,11 +241,8 @@ export function TransportProvider({
       const url = `${apiEndpoint.replace(/\/$/, "")}/${actionName}`;
       const assignInput: AssignInput<TArgs> = {
         args,
-        instanceId: config.instanceId,
-        action: actionName,
         policy: options?.policy,
         agent: options?.agent,
-        reservation: options?.reservation,
         reference: options?.reference,
         parent: options?.parent,
         cached: options?.cached ?? false,
@@ -271,7 +268,7 @@ export function TransportProvider({
 
       return (await response.json()) as AssignResponse;
     },
-    [config.instanceId, getEndpoints],
+    [getEndpoints],
   );
 
   const fetchTask = useCallback(
@@ -300,7 +297,8 @@ export function TransportProvider({
       const url = `${apiEndpoint.replace(/\/$/, "")}/${endpoint}`;
       const response = await fetch(url, {
         method: "POST",
-        body: JSON.stringify({ assignation: taskId }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ task: taskId }),
       });
 
       if (!response.ok) {
@@ -338,7 +336,7 @@ export function TransportProvider({
         throw new Error(`State ${stateName} not found in collection response.`);
       }
 
-      return state;
+      return { ...state, local_revision: data.current_global_revision ?? 0 };
     },
     [getEndpoints],
   );
@@ -585,7 +583,7 @@ export function TransportProvider({
       fetchActiveSessionBoundaries,
       cancelTaskRequest: createTaskMutation("cancel"),
       pauseTaskRequest: createTaskMutation("pause"),
-      unpauseTaskRequest: createTaskMutation("unpause"),
+      unpauseTaskRequest: createTaskMutation("resume"),
       stepTaskRequest: createTaskMutation("step"),
       subscribeToMessages,
       subscribeToConnectionState,

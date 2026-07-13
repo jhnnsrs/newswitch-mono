@@ -49,11 +49,11 @@ class CacheManager(Manager, Protocol):
         """
         ...
 
-    def frame_exists(self, cache_id: str) -> bool:
+    def frame_exists(self, store_id: str) -> bool:
         """Check if a file exists."""
         ...
 
-    def get_frame_path(self, cache_id: str) -> str:
+    def get_frame_path(self, store_id: str) -> str:
         """Get the actual file path for a given cache ID."""
         ...
 

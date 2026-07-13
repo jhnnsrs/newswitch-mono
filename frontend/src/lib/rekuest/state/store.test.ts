@@ -1,5 +1,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { z } from "zod";
 import { createGlobalStateStore } from "./store";
+import { createIndexedUnion } from "@/apps/default/hooks/states/utils";
 import {
   StateEventType,
   type StatePatchEvent,
@@ -22,7 +24,7 @@ const makePatch = (
   op: "replace",
   path: "/x",
   value: 42,
-  correlation_id: "corr-1",
+  task_id: "task-1",
   ...overrides,
 });
 
@@ -106,5 +108,64 @@ describe("globalStateStore.applyPatch", () => {
     expect(latestPatches).toHaveLength(3);
     // Oldest entries are dropped, newest kept.
     expect(latestPatches.map((entry) => entry.ts)).toEqual([3, 4, 5]);
+  });
+
+  it("drops patches for a state that never hydrated", () => {
+    const store = createGlobalStateStore();
+
+    // A failed checkout leaves the state absent. Patching it must not record the patch or
+    // advance the revision - and must not JSON.parse(undefined) on the way.
+    store.getState().applyPatch(makePatch({ global_rev: 12 }));
+
+    expect(store.getState().states.StageState).toBeUndefined();
+    expect(store.getState().latestPatches).toHaveLength(0);
+    expect(store.getState().globalRevision).not.toBe(12);
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringContaining("not hydrated"),
+    );
+  });
+
+  it("decodes a patched document through the state schema", () => {
+    const store = createGlobalStateStore();
+    const schema = z.object({
+      x: z.number(),
+      kube: createIndexedUnion([
+        z.object({ kube_id: z.string() }),
+        z.object({ wavelength: z.number() }),
+      ]),
+    });
+
+    store.getState().setState("StageState", { x: 0, kube: { kube_id: "a" } });
+
+    // A patch value arrives in wire form; the schema is what turns it back into a flat kube.
+    store.getState().applyPatch(
+      makePatch({
+        op: "replace",
+        path: "/kube",
+        value: { __use: 1, __value: { wavelength: 525 } },
+      }),
+      schema,
+    );
+
+    expect(store.getState().states.StageState).toEqual({
+      x: 0,
+      kube: { wavelength: 525 },
+    });
+  });
+
+  it("keeps the previous value when a patched document fails validation", () => {
+    const store = createGlobalStateStore();
+    const schema = z.object({ x: z.number() });
+
+    store.getState().setState("StageState", { x: 1 });
+
+    store
+      .getState()
+      .applyPatch(
+        makePatch({ op: "replace", path: "/x", value: "not-a-number" }),
+        schema,
+      );
+
+    expect(store.getState().states.StageState).toEqual({ x: 1 });
   });
 });

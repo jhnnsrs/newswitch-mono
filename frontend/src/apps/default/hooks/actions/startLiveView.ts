@@ -23,14 +23,16 @@ export const StartLiveViewDefinition: ActionDefinition<
   name: 'start_live_view',
   appKey: 'default',
   description:
-    'Call this to begin streaming frames captured by the detector\nto connected video clients.',
+    'Start broadcasting frames to the video WebSocket endpoint.\n\nCall this to begin streaming frames captured by the detector\nto connected video clients.',
   argsSchema: StartLiveViewArgsSchema,
   returnSchema: StartLiveViewReturnSchema,
   lockKeys: ['camera_parameters'],
 };
 
 /**
- * Call this to begin streaming frames captured by the detector
+ * Start broadcasting frames to the video WebSocket endpoint.
+
+Call this to begin streaming frames captured by the detector
 to connected video clients.
  */
 export const useStartLiveView = () => {

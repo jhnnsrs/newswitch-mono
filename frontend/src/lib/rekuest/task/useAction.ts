@@ -129,14 +129,24 @@ export const useAction = <TArgs, TReturn>(
         throw parsed.error;
       }
 
+      // Parse first, then encode: defaults (e.g. a model's `__identifier`) are only applied in the
+      // decode direction, so encoding `args` straight would drop them. Encoding the parsed value
+      // wraps union members back into their `{ __use, __value }` wire envelope; for schemas without
+      // a union this is an identity pass.
+      const encoded = z.safeEncode(definition.argsSchema, parsed.data);
+      if (!encoded.success) {
+        setValidationError(encoded.error);
+        throw encoded.error;
+      }
+
       const reference = opts?.reference || taskApi.createReference();
       setCurrentReference(reference);
 
-      // `argsSchema` is `ZodType<unknown, TArgs>` (TArgs is the schema's INPUT), so
-      // `parsed.data` is statically `unknown`. At runtime it is the validated form of
-      // `args` - defaults filled in and branded - which is structurally still a TArgs,
-      // so recording it as the task's args type is sound.
-      const wireArgs = parsed.data as TArgs;
+      // `argsSchema` is `ZodType<unknown, TArgs>` (TArgs is the schema's INPUT), so `encoded.data` is
+      // statically `unknown`. At runtime it is the wire form of `args` - defaults filled in, branded,
+      // unions enveloped - which is structurally still a TArgs, so recording it as the task's args
+      // type is sound.
+      const wireArgs = encoded.data as TArgs;
 
       return await taskApi.assign<TArgs, TReturn>(
         appKey,

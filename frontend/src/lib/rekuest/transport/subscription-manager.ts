@@ -329,7 +329,15 @@ export class TransportSubscriptionManager {
         message,
       );
       state.listeners.forEach((listener) => {
-        listener(message);
+        // One listener throwing must not starve the others of this message.
+        try {
+          listener(message);
+        } catch (error) {
+          console.error(
+            `[TransportSubscriptionManager] Listener failed for ${appKey}:`,
+            error,
+          );
+        }
       });
     };
 

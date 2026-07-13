@@ -84,10 +84,6 @@ function sortPatchEvents(
     return left.global_future_rev - right.global_future_rev;
   }
 
-  if (left.current_rev !== right.current_rev) {
-    return left.current_rev - right.current_rev;
-  }
-
   return (
     new Date(left.timepoint).getTime() - new Date(right.timepoint).getTime()
   );
@@ -206,7 +202,7 @@ export function materializeSnapshotMap(
 
       materialized[resolvedStateKey] = {
         value: patchedValue,
-        revision: patchEvent.future_rev,
+        revision: patchEvent.global_future_rev,
       };
     }
   }

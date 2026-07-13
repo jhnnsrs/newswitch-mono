@@ -8,6 +8,8 @@ import pytest
 from fastapi import FastAPI
 from rekuest_next.contrib.fastapi import AsyncAgentTestClient
 
+from tests.conftest import collect_until_completed
+
 
 @pytest.mark.asyncio
 async def test_assign_and_get_result(virtual_microscope_app: FastAPI) -> None:
@@ -25,24 +27,24 @@ async def test_assign_and_get_result(virtual_microscope_app: FastAPI) -> None:
     async with AsyncAgentTestClient(virtual_microscope_app) as client:
         # First activate a detector
         activate_result = await client.assign("activate_detector", {"slot": 1})
-        events = await client.collect_until_done(activate_result.assignation_id)
+        events = await collect_until_completed(client, activate_result.task_id)
         assert len(events) >= 1
-        assert events[-1].is_done()
+        assert events[-1].event_type == "COMPLETED"
 
         calibration_result = await client.assign("calibrate_light_path", {})
-        calibration_events = await client.collect_until_done(calibration_result.assignation_id)
+        calibration_events = await collect_until_completed(client, calibration_result.task_id)
         assert len(calibration_events) >= 1
-        assert calibration_events[-1].is_done()
+        assert calibration_events[-1].event_type == "COMPLETED"
 
         # Assign work - capture_image with slot
         assign_result = await client.assign("capture_image", {"slot": 1})
 
         # Collect events until done
-        events = await client.collect_until_done(assign_result.assignation_id)
+        events = await collect_until_completed(client, assign_result.task_id)
 
-        # Should have received events including DONE
+        # Should have received events including COMPLETED
         assert len(events) >= 1
-        assert events[-1].is_done()
+        assert events[-1].event_type == "COMPLETED"
 
         # Verify the final result contains a file handle
         done_event = [event for event in events if event.is_yield()][0]

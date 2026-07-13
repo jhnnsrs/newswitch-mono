@@ -1,5 +1,6 @@
 import { createContext, useContext } from "react";
 import { useStore } from "zustand";
+import type { ZodType } from "zod";
 import { applyPatch, type Operation } from "fast-json-patch";
 import { createStore, type StateCreator, type StoreApi } from "zustand/vanilla";
 import { devtools, subscribeWithSelector } from "zustand/middleware";
@@ -56,7 +57,7 @@ export interface GlobalStateStore {
     snapshots: Record<string, { value: unknown; revision: number }>,
   ) => void;
   upsertSegments: (segments: StateSegmentsResponse[]) => void;
-  applyPatch: (envelope: StatePatchEvent) => void;
+  applyPatch: (envelope: StatePatchEvent, schema?: ZodType) => void;
   replaceLatestPatches: (patches: LatestPatchEntry[]) => void;
   setLoading: (key: string, loading: boolean) => void;
   setGlobalRevision: (revision: string | number | null) => void;
@@ -218,8 +219,15 @@ export const createGlobalStateStore = ({
         });
       },
 
-      applyPatch: (message) => {
+      applyPatch: (message, schema) => {
         const currentState = get().states[message.state_name];
+
+        if (currentState === undefined) {
+          console.error(
+            `[StateStore] ${message.state_name} is not hydrated; dropping patch at global revision ${message.global_rev}`,
+          );
+          return;
+        }
 
         console.log(
           `[StateStore] Applying patch to ${message.state_name} at global revision ${message.global_rev}:`,
@@ -249,8 +257,27 @@ export const createGlobalStateStore = ({
           const operation = message as unknown as Operation;
           const { newDocument } = applyPatch(clonedState, [operation]);
 
+          // A patch value arrives in wire form, so re-validating decodes it the same way the
+          // initial snapshot was decoded (union envelopes in particular). Without this the store
+          // would hold a document that is part decoded, part wire.
+          let nextState: unknown = newDocument;
+
+          if (schema) {
+            const parsed = schema.safeParse(newDocument);
+
+            if (!parsed.success) {
+              console.error(
+                `[StateStore] Patched ${message.state_name} failed schema validation; keeping previous value:`,
+                parsed.error,
+              );
+              return;
+            }
+
+            nextState = parsed.data;
+          }
+
           set((state) => {
-            state.states[message.state_name] = newDocument;
+            state.states[message.state_name] = nextState;
             state.globalRevision = message.global_rev;
           });
         } catch (err) {
