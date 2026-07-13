@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.11, <4.0"
 resolution-markers = [
     "python_full_version >= '3.14'",
@@ -1020,7 +1020,7 @@ wheels = [
 
 [[package]]
 name = "newswitch"
-version = "1.0.0"
+version = "1.0.1"
 source = { editable = "." }
 dependencies = [
     { name = "aiosqlite" },
@@ -2507,15 +2507,43 @@ name = "useq-schema"
 version = "0.9.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+<<<<<<< HEAD
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+=======
+    { name = "numpy" },
+>>>>>>> f041c9850c02342269e31cd39adbb4caafcca9d4
     { name = "pydantic" },
     { name = "shapely" },
     { name = "typing-extensions" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/2c/52/562f51ba6d7b8b49325d20ead16be79ff3edccdd03fb8cae494bcddd6643/useq_schema-0.9.2.tar.gz", hash = "sha256:a84a374f734c0441c63ecb463d150dae4449e215347bfd990c8c13711184bbf1", size = 114984, upload-time = "2026-04-01T13:33:39.091Z" }
 wheels = [
+<<<<<<< HEAD
     { url = "https://files.pythonhosted.org/packages/ac/38/30b313b0b83cc86a343f6ebabcca4d210107513b026d48ae8aa489571b52/useq_schema-0.9.2-py3-none-any.whl", hash = "sha256:dbecaebca4898df454a7ec221d9bf265d41ee285d80f0285fb1188d8ec1ecb95", size = 85855, upload-time = "2026-04-01T13:33:37.603Z" },
+=======
+    { url = "https://files.pythonhosted.org/packages/36/c4/062c4318ab50090505740f151ca951fa3d2ace4084c61e816959e67ae6b2/useq_schema-0.8.1-py3-none-any.whl", hash = "sha256:a5c090c3ca52ce653bde5d30038742df9040e52a7bea5acdbb00c003191d088b", size = 52962, upload-time = "2025-08-15T20:17:19.277Z" },
+]
+
+[[package]]
+name = "useq-schema"
+version = "0.8.2"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version == '3.13.*'",
+    "python_full_version == '3.12.*'",
+    "python_full_version < '3.12'",
+]
+dependencies = [
+    { name = "numpy" },
+    { name = "pydantic" },
+    { name = "shapely" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a6/d6/6e458ca25e07b726956e1edd7fb57f0bd762af733cc184d3c580d463a62a/useq_schema-0.8.2.tar.gz", hash = "sha256:76daf878a0c4750ce900b419c3c6a0866e05a88e7bb39e495655453a6d396c97", size = 69035, upload-time = "2025-12-01T21:06:40.623Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/87/41/84baf0a3157876df43f8aebf6526f88df7003b1fd168956498f3f12d885a/useq_schema-0.8.2-py3-none-any.whl", hash = "sha256:239836c8a55d5cdfcf3be74f753977180a01c738edb98ef4f38d5eb543df83c6", size = 52915, upload-time = "2025-12-01T21:06:39.049Z" },
+>>>>>>> f041c9850c02342269e31cd39adbb4caafcca9d4
 ]
 
 [[package]]
