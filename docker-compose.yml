@@ -1,0 +1,45 @@
+name: newswitch
+
+services:
+  backend:
+    build:
+      context: ./backend
+    image: newswitch-backend:dev
+    ports:
+      # Published so the BROWSER can reach it at localhost:8099
+      - "8099:8099"
+    volumes:
+      - ./backend:/app
+      # Keeps the image's venv from being shadowed by the bind mount above
+      - backend-venv:/app/.venv
+    environment:
+      PYTHONUNBUFFERED: "1"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8099/schemas/states', timeout=3).status == 200 else 1)
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  frontend:
+    build:
+      context: ./frontend
+    image: newswitch-frontend:dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - frontend-node-modules:/app/node_modules
+    command: ["yarn", "dev", "--mode", "docker", "--host", "0.0.0.0", "--port", "5173"]
+    depends_on:
+      backend:
+        # The codegen fetches the schemas before vite boots, so wait for them
+        condition: service_healthy
+
+volumes:
+  backend-venv:
+  frontend-node-modules:

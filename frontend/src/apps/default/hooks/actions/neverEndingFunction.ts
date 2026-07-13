@@ -1,0 +1,37 @@
+import { z } from 'zod';
+import { useAction, type ActionDefinition } from '@/lib/rekuest/task';
+
+// --- Shared Models ---
+
+// --- Schemas ---
+export const NeverEndingFunctionArgsSchema = z.object({});
+export const NeverEndingFunctionReturnSchema = z.object({});
+
+// --- Types ---
+export type NeverEndingFunctionArgs = z.infer<
+  typeof NeverEndingFunctionArgsSchema
+>;
+export type NeverEndingFunctionReturn = z.infer<
+  typeof NeverEndingFunctionReturnSchema
+>;
+
+// --- Definition ---
+export const NeverEndingFunctionDefinition: ActionDefinition<
+  NeverEndingFunctionArgs,
+  NeverEndingFunctionReturn
+> = {
+  name: 'never_ending_function',
+  appKey: 'default',
+  description:
+    'A function that never ends to test how the system handles long-running functions.',
+  argsSchema: NeverEndingFunctionArgsSchema,
+  returnSchema: NeverEndingFunctionReturnSchema,
+  lockKeys: [],
+};
+
+/**
+ * A function that never ends to test how the system handles long-running functions.
+ */
+export const useNeverEndingFunction = () => {
+  return useAction(NeverEndingFunctionDefinition);
+};

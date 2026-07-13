@@ -1,0 +1,77 @@
+import type { Detector } from "@/apps/default/hooks/actions";
+import { useCurrentAffineTransform } from "@/hooks/useCurrentAffineTransform";
+import { useFrame } from "@react-three/fiber";
+import { useMemo, useRef } from "react";
+import {
+  DoubleSide,
+  Matrix4,
+  Mesh
+} from "three";
+import { useH264LiveTexture } from "../../hooks/useH264LiveTexture";
+
+
+
+export const LivePlane = (props: {detector: Detector}) => {
+  const meshRef = useRef<Mesh>(null);
+
+  const { texture: liveTexture } = useH264LiveTexture({
+    detector: props.detector,
+  });
+  const affine = useCurrentAffineTransform();
+
+  const stageMatrix = useMemo(() => {
+    // Ensure we are reading the 4x4 array correctly.
+    // Matrix4.set is (n11, n12, n13, n14...)
+    const m = new Matrix4();
+    if (affine && affine.length === 4) {
+      m.set(
+        affine[0][0],
+        affine[0][1],
+        affine[0][2],
+        affine[0][3],
+        affine[1][0],
+        affine[1][1],
+        affine[1][2],
+        affine[1][3],
+        affine[2][0],
+        affine[2][1],
+        affine[2][2],
+        affine[2][3],
+        affine[3][0],
+        affine[3][1],
+        affine[3][2],
+        affine[3][3],
+      );
+    }
+
+    // Apply the 20um scale relative to the affine transform
+    const liveTextureSizeUm = 1024;
+    const scaleM = new Matrix4().makeScale(
+      liveTextureSizeUm,
+      liveTextureSizeUm,
+      1,
+    );
+    return m.multiply(scaleM);
+  }, [affine]);
+
+  // This is crucial: VideoTextures sometimes need manual 'needsUpdate'
+  // flags when the source is a JMuxer-fed video element.
+  useFrame(() => {
+    if (liveTexture) liveTexture.needsUpdate = true;
+    if (meshRef.current) {
+      meshRef.current.matrix.copy(stageMatrix);
+      meshRef.current.matrixWorldNeedsUpdate = true;
+    }
+  });
+
+  return (
+    <mesh ref={meshRef} matrixAutoUpdate={false}>
+      <planeGeometry args={[1, 1]} />
+      <meshStandardMaterial
+        map={liveTexture}
+        side={DoubleSide}
+        toneMapped={false}
+      />
+    </mesh>
+  );
+};

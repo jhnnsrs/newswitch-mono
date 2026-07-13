@@ -1,0 +1,19 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/hooks/generated": ["./src/apps/default/hooks/actions/index.ts"],
+      "@/hooks/generated/*": ["./src/apps/default/hooks/actions/*"],
+      "@/hooks/states": ["./src/apps/default/hooks/states/index.ts"],
+      "@/hooks/states/*": ["./src/apps/default/hooks/states/*"],
+      "@/hooks/locks": ["./src/apps/default/hooks/locks/index.ts"],
+      "@/hooks/locks/*": ["./src/apps/default/hooks/locks/*"],
+      "@/*": ["./src/*"]
+    }
+  }
+}

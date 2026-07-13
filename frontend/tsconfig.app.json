@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "types": ["vite/client"],
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/hooks/generated": ["./src/apps/default/hooks/actions/index.ts"],
+      "@/hooks/generated/*": ["./src/apps/default/hooks/actions/*"],
+      "@/hooks/states": ["./src/apps/default/hooks/states/index.ts"],
+      "@/hooks/states/*": ["./src/apps/default/hooks/states/*"],
+      "@/hooks/locks": ["./src/apps/default/hooks/locks/index.ts"],
+      "@/hooks/locks/*": ["./src/apps/default/hooks/locks/*"],
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src"]
+}
