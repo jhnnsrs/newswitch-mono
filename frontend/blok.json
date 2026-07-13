@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T13:42:55.340Z",
+  "generatedAt": "2026-07-13T14:00:27.789Z",
   "app": {
     "name": "newswitch",
     "version": "1.0.0",
@@ -2516,11 +2516,11 @@
           ],
           "manipulates": [
             "ExpanseState",
+            "FilterBankState",
             "IlluminationState",
             "ObjectiveState",
-            "FilterBankState",
-            "StageState",
-            "CameraState"
+            "CameraState",
+            "StageState"
           ],
           "extension": null
         },
@@ -15200,13 +15200,6 @@
             "description": "Lock definition for stage_position"
           }
         },
-        "camera_parameters": {
-          "key": "camera_parameters",
-          "definition": {
-            "key": "camera_parameters",
-            "description": "Lock definition for camera_parameters"
-          }
-        },
         "io": {
           "key": "io",
           "definition": {
@@ -15214,11 +15207,11 @@
             "description": "Lock definition for io"
           }
         },
-        "objective": {
-          "key": "objective",
+        "camera_parameters": {
+          "key": "camera_parameters",
           "definition": {
-            "key": "objective",
-            "description": "Lock definition for objective"
+            "key": "camera_parameters",
+            "description": "Lock definition for camera_parameters"
           }
         },
         "filter_bank": {
@@ -15226,6 +15219,13 @@
           "definition": {
             "key": "filter_bank",
             "description": "Lock definition for filter_bank"
+          }
+        },
+        "objective": {
+          "key": "objective",
+          "definition": {
+            "key": "objective",
+            "description": "Lock definition for objective"
           }
         },
         "hook_registry": {
@@ -15237,9 +15237,9 @@
         }
       },
       "schemas": {
-        "tasks": "http://backend:8099/schemas/implementations",
-        "states": "http://backend:8099/schemas/states",
-        "locks": "http://backend:8099/schemas/locks"
+        "tasks": "http://localhost:8099/schemas/implementations",
+        "states": "http://localhost:8099/schemas/states",
+        "locks": "http://localhost:8099/schemas/locks"
       }
     }
   }

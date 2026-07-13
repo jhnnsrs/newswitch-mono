@@ -69,6 +69,11 @@ healthcheck that probes the exact endpoint the codegen needs.
 
 Two things to know:
 
+- **Both containers run as uid 1000, not root** — deliberately. They bind-mount their source dir and
+  *write into it* (the frontend regenerates `src/apps/default/**`; the backend writes `agent_data.db`). As
+  root those files come out root-owned, and your host `yarn dev` then dies with
+  `EACCES: permission denied, unlink .../src/apps/default/hooks/actions/...`. uid 1000 matches a typical
+  Linux host user. If your host user isn't uid 1000, adjust the `USER` lines in the two Dockerfiles.
 - **After changing dependencies, `docker compose build` is not enough.** The venv and `node_modules` live
   in named volumes (so the source bind-mount doesn't hide them), and those volumes survive a rebuild. Use
   `just down-hard` to drop them, then `just up`.
