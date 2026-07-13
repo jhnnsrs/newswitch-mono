@@ -1,16 +1,14 @@
 # newswitch
 
+ABSOLUTELY ALPHA
+
 "Imswitch but new". This repo bears almost no resemblance to the original codebase, but aims to provide a
 more web-stack-friendly, modern, and maintainable foundation for the same functionality.
 
-| | | |
-|---|---|---|
-| **`backend/`** | Python 3.11+, FastAPI + [rekuest-next](https://github.com/arkitektio/rekuest-next), managed with `uv` | serves on `:8099` |
-| **`frontend/`** | React 19 + Vite 7 + Tailwind, managed with `yarn` | serves on `:5173` |
 
 ## Quickstart
 
-You need Python 3.11+ and Node 20+. The repo uses [just](https://just.systems/man/en/) for task automation. Install it, then:
+You need Python 3.11+ with uv and Node 20+. The repo uses [just](https://just.systems/man/en/) for task automation. Install it, then:
 
 ```bash
 just install     # uv sync + yarn install
@@ -103,8 +101,6 @@ One version for the whole repo, one tag (`vX.Y.Z`), **GitHub Releases only**.
 Pushing [conventional commits](https://www.conventionalcommits.org/) to `main` triggers
 `.github/workflows/release.yml`, which runs semantic-release from the root `release.config.cjs`. It bumps
 `backend/pyproject.toml` **and** `frontend/package.json` to the same version, rebuilds the frontend *after*
-the bump (so `blok.json` carries the new version), and attaches `blok.zip`, `blok.json`, and the backend
-wheel + sdist to the release.
 
 Preview what a release would do, without tagging or pushing:
 
@@ -116,19 +112,4 @@ just release-dry
 A full local dry run also needs a `GITHUB_TOKEN` in the environment (the GitHub plugin verifies auth even
 in `--dry-run`). In CI, both the URL and the token come from the Actions checkout automatically.
 
-## Known debt
 
-All gates are green and **blocking** in CI: format, lint, types, tests, build (both halves), plus the
-codegen drift check.
-
-Two things are deliberately left unfinished, both marked `// TODO: not mounted` in
-`src/components/navigation/AppNavigationChrome.tsx`: `AppLatestChanges` (the only consumer of
-`latestPatches` — the "recent patches" surface described above) and `RouteNavigationBar` are written but
-never rendered. They were exported rather than deleted, because they're unfinished wiring, not dead code.
-
-Also unwired: `ObjectiveControl` subscribes to the toggle-objective action but no control in that panel
-calls it.
-
-Prettier is scoped: generated code (`src/apps/**`) and `plugins/**` are single-quoted to match what the
-generator emits; hand-written `src/` uses prettier's defaults. Changing that split will make the generator
-and the formatter fight, and the drift check will never pass.
