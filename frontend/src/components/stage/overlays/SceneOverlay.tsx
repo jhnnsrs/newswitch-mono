@@ -15,8 +15,8 @@ export const SceneOverlay = () => {
   const setInteractionMode = useModeStore((s) => s.setInteractionMode);
   const setDisplayMode = useModeStore((s) => s.setDisplayMode);
   const isDebug = useViewerStore((state) => state.debug);
-  
-  const setDebug =  useViewerStore((state) => state.setDebug);
+
+  const setDebug = useViewerStore((state) => state.setDebug);
   const { data: expanseState } = useExpanseState({ subscribe: true });
 
   return (
@@ -35,7 +35,6 @@ export const SceneOverlay = () => {
               <span className="text-xs font-bold">{mode.label}</span>
             </Button>
           ))}
-
         </ButtonGroup>
 
         <ButtonGroup>
@@ -53,11 +52,15 @@ export const SceneOverlay = () => {
         </ButtonGroup>
 
         <ButtonGroup>
-          <Button onClick={() => {
-            setDebug(!isDebug);
-        }} variant={isDebug ? "destructive" : "outline"} size={"xs"}>
-            { isDebug ? "Disable Debug" : "Enable Debug" }
-        </Button>
+          <Button
+            onClick={() => {
+              setDebug(!isDebug);
+            }}
+            variant={isDebug ? "destructive" : "outline"}
+            size={"xs"}
+          >
+            {isDebug ? "Disable Debug" : "Enable Debug"}
+          </Button>
         </ButtonGroup>
       </div>
       <div className="absolute bottom-2 right-2 rounded bg-black/80 p-2 font-mono text-[10px] text-white">

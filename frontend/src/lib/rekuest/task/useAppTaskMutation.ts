@@ -1,6 +1,6 @@
-import { useCallback } from 'react';
-import { useTaskContext } from './task-context';
-import type { UseAppTaskMutationResult } from './types';
+import { useCallback } from "react";
+import { useTaskContext } from "./task-context";
+import type { UseAppTaskMutationResult } from "./types";
 
 export const useCancelAppTask = (appKey: string): UseAppTaskMutationResult => {
   const action = useTaskContext();

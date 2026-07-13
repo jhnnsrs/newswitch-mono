@@ -1,13 +1,13 @@
-import { createContext, useContext } from 'react';
-import { useStore } from 'zustand';
-import { applyPatch, type Operation } from 'fast-json-patch';
-import { createStore, type StateCreator, type StoreApi } from 'zustand/vanilla';
-import { devtools, subscribeWithSelector } from 'zustand/middleware';
-import { immer } from 'zustand/middleware/immer';
+import { createContext, useContext } from "react";
+import { useStore } from "zustand";
+import { applyPatch, type Operation } from "fast-json-patch";
+import { createStore, type StateCreator, type StoreApi } from "zustand/vanilla";
+import { devtools, subscribeWithSelector } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
 import type {
   StatePatchEvent,
   StateSegmentsResponse,
-} from '@/lib/rekuest/transport/types';
+} from "@/lib/rekuest/transport/types";
 
 export interface StateSnapshot {
   name: string;
@@ -74,7 +74,7 @@ interface GlobalStateStoreOptions {
 
 export const createGlobalStateStore = ({
   debug = false,
-  devtoolsName = 'RekuestStateStore',
+  devtoolsName = "RekuestStateStore",
   latestPatchesBufferSize = 100,
 }: GlobalStateStoreOptions = {}) => {
   const toTrustedRevision = (revision: string | number | null | undefined) => {
@@ -83,14 +83,14 @@ export const createGlobalStateStore = ({
     }
 
     const numericRevision =
-      typeof revision === 'number' ? revision : Number(revision);
+      typeof revision === "number" ? revision : Number(revision);
     return Number.isFinite(numericRevision) ? numericRevision : null;
   };
 
   const initializer: StateCreator<
     GlobalStateStore,
     [],
-    [['zustand/subscribeWithSelector', never], ['zustand/immer', never]]
+    [["zustand/subscribeWithSelector", never], ["zustand/immer", never]]
   > = subscribeWithSelector(
     immer((set, get) => ({
       states: {},
@@ -360,7 +360,7 @@ export const useGlobalStateStoreRegistry = (): GlobalStateStoreRegistry => {
   const registry = useContext(GlobalStateStoreContext);
 
   if (!registry) {
-    throw new Error('Missing GlobalStateStoreProvider');
+    throw new Error("Missing GlobalStateStoreProvider");
   }
 
   return registry;
@@ -381,7 +381,7 @@ export function useGlobalStateStore<TSelected>(
   const registry = useGlobalStateStoreRegistry();
 
   if (!selector) {
-    throw new Error('Missing state selector');
+    throw new Error("Missing state selector");
   }
 
   return useStore(registry.getStoreApi(appKey), selector);
@@ -409,7 +409,7 @@ export const selectLatestPatches =
     limit == null ? store.latestPatches : store.latestPatches.slice(-limit);
 
 export const selectPath = <T = unknown>(path: string) => {
-  const parts = path.split('.');
+  const parts = path.split(".");
   return (store: GlobalStateStore): T | undefined => {
     let current: unknown = store.states;
     for (const part of parts) {

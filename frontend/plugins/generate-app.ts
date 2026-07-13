@@ -242,10 +242,15 @@ const pruneDir = (dirPath: string, expectedFileNames: Set<string>) => {
 let prettierOptions: Promise<prettier.Options> | null = null;
 
 const getPrettierOptions = () => {
-  prettierOptions ??= prettier.resolveConfig(BLOK_PATH).then((resolved) => ({
-    ...(resolved ?? { singleQuote: true, trailingComma: 'all' as const }),
-    parser: 'typescript' as const,
-  }));
+  // Resolve against a path INSIDE the generated tree: .prettierrc scopes the single-quote
+  // style to src/apps/**, so resolving anywhere else would hand back the hand-written
+  // defaults and rewrite every generated file.
+  prettierOptions ??= prettier
+    .resolveConfig(path.resolve(DEFAULT_APPS_DIR, 'index.ts'))
+    .then((resolved) => ({
+      ...(resolved ?? { singleQuote: true, trailingComma: 'all' as const }),
+      parser: 'typescript' as const,
+    }));
 
   return prettierOptions;
 };

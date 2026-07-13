@@ -1,21 +1,21 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { z } from 'zod';
-import { selectAppIsLive, useAppStateStore } from '@/lib/rekuest/app-state';
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { z } from "zod";
+import { selectAppIsLive, useAppStateStore } from "@/lib/rekuest/app-state";
 import {
   getBlockingLock,
   useBlockingLock,
   useLockStoreApi,
-} from '@/lib/rekuest/locks/store';
-import { selectTask, useTaskStore } from '@/lib/rekuest/task/store';
-import { useTaskContext } from '@/lib/rekuest/task/task-context';
-import type { AssignOptions, Task } from '@/lib/rekuest/transport/types';
+} from "@/lib/rekuest/locks/store";
+import { selectTask, useTaskStore } from "@/lib/rekuest/task/store";
+import { useTaskContext } from "@/lib/rekuest/task/task-context";
+import type { AssignOptions, Task } from "@/lib/rekuest/transport/types";
 import type {
   ActionDefinition,
   UseActionOptions,
   UseActionResult,
   UseTransportActionOptions,
   UseTransportActionResult,
-} from './types';
+} from "./types";
 
 export const useAction = <TArgs, TReturn>(
   definition: ActionDefinition<TArgs, TReturn>,
@@ -69,7 +69,7 @@ export const useAction = <TArgs, TReturn>(
   const result = (task?.result as TReturn) ?? null;
   const error = task?.error ?? null;
   const progress = task?.progress ?? null;
-  const isLoading = status === 'pending' || status === 'running';
+  const isLoading = status === "pending" || status === "running";
 
   const handleTaskUpdate = useCallback((updatedTask: Task) => {
     const cbs = callbacksRef.current;
@@ -77,10 +77,10 @@ export const useAction = <TArgs, TReturn>(
     if (cbs.onProgress && updatedTask.progress !== undefined) {
       cbs.onProgress(updatedTask.progress, updatedTask);
     }
-    if (updatedTask.status === 'completed' && cbs.onComplete) {
+    if (updatedTask.status === "completed" && cbs.onComplete) {
       cbs.onComplete(updatedTask.result, updatedTask);
     }
-    if (updatedTask.status === 'failed' && cbs.onError && updatedTask.error) {
+    if (updatedTask.status === "failed" && cbs.onError && updatedTask.error) {
       cbs.onError(updatedTask.error, updatedTask);
     }
   }, []);
@@ -113,7 +113,7 @@ export const useAction = <TArgs, TReturn>(
 
       if (!isLive) {
         throw new Error(
-          'Action is unavailable while the app is not in live mode',
+          "Action is unavailable while the app is not in live mode",
         );
       }
 

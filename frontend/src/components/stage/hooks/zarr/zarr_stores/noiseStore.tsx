@@ -1,4 +1,3 @@
-
 // --- Assuming these are your external imports ---
 import { BACKEND_API } from "@/constants";
 import type { AbsolutePath } from "@zarrita/storage";
@@ -10,7 +9,7 @@ export const GLOBAL_CACHE_ENDPOINT = `${BACKEND_API}/cache`;
 
 /**
  * A mock Zarrita store that generates noise data instead of fetching from a backend.
- * It intercepts requests for 'zarr.json' to provide structural metadata, 
+ * It intercepts requests for 'zarr.json' to provide structural metadata,
  * and generates random Uint8 arrays for chunk data requests.
  */
 export class TestNoiseZarrStore {
@@ -20,7 +19,10 @@ export class TestNoiseZarrStore {
     this.url = url;
   }
 
-  async get(key: AbsolutePath, options: RequestInit = {}): Promise<Uint8Array | undefined> {
+  async get(
+    key: AbsolutePath,
+    options: RequestInit = {},
+  ): Promise<Uint8Array | undefined> {
     // 1. Intercept array metadata request
     if (key === "/zarr.json") {
       const mockMetadata = {
@@ -30,19 +32,22 @@ export class TestNoiseZarrStore {
         data_type: "uint8",
         chunk_grid: {
           name: "regular",
-          configuration: { chunk_shape: [1, 10, 64, 64] }
+          configuration: { chunk_shape: [1, 10, 64, 64] },
         },
         chunk_key_encoding: {
           name: "default",
-          configuration: { separator: "/" }
+          configuration: { separator: "/" },
         },
         fill_value: 0,
-        codecs: [{ name: "bytes", configuration: { endian: "little" } }]
+        codecs: [{ name: "bytes", configuration: { endian: "little" } }],
       };
       return new TextEncoder().encode(JSON.stringify(mockMetadata));
     }
 
-    console.log(`TestNoiseZarrStore received get request for key: ${key}`, options);
+    console.log(
+      `TestNoiseZarrStore received get request for key: ${key}`,
+      options,
+    );
 
     // 2. Intercept chunk data requests
     if (key.startsWith("/c/")) {

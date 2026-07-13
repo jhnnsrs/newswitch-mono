@@ -6,32 +6,32 @@ import {
   useState,
   type MutableRefObject,
   type ReactNode,
-} from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { Activity, History, Loader2, PlaySquare, Radio } from 'lucide-react';
-import { NavLink, useLocation } from 'react-router-dom';
-import { toast } from 'sonner';
-import { buttonVariants, Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
+} from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Activity, History, Loader2, PlaySquare, Radio } from "lucide-react";
+import { NavLink, useLocation } from "react-router-dom";
+import { toast } from "sonner";
+import { buttonVariants, Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { useAppStateContext } from '@/lib/rekuest/app-state/app-state-context';
+} from "@/components/ui/tooltip";
+import { useAppStateContext } from "@/lib/rekuest/app-state/app-state-context";
 import {
   selectLatestPatches,
   useGlobalStateStore,
-} from '@/lib/rekuest/state/store';
-import { useStateContext } from '@/lib/rekuest/state';
-import { useTransport } from '@/lib/rekuest/transport';
-import type { AppKey } from '@/lib/rekuest/types';
-import { cn } from '@/lib/utils';
+} from "@/lib/rekuest/state/store";
+import { useStateContext } from "@/lib/rekuest/state";
+import { useTransport } from "@/lib/rekuest/transport";
+import type { AppKey } from "@/lib/rekuest/types";
+import { cn } from "@/lib/utils";
 
 const DEBOUNCE_MS = 220;
 const TIMELINE_CHANGE_LIMIT = 8;
 
-type OverlayMode = 'live' | 'timeline';
+type OverlayMode = "live" | "timeline";
 
 type AppTimelineBoundary = {
   appKey: AppKey;
@@ -44,33 +44,33 @@ type AppTimelineBoundary = {
 
 const navigationItems = [
   {
-    to: '/',
-    label: 'Index',
+    to: "/",
+    label: "Index",
     icon: Activity,
   },
   {
-    to: '/replay',
-    label: 'Replay',
+    to: "/replay",
+    label: "Replay",
     icon: PlaySquare,
   },
 ] as const;
 
 const formatTimelineLabel = (ms: number) =>
   new Date(ms).toLocaleString([], {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
   });
 
 const formatPatchPath = (path: string) => {
   if (!path) {
-    return 'state';
+    return "state";
   }
 
-  const normalizedPath = path.startsWith('/') ? path.slice(1) : path;
-  return normalizedPath || 'state';
+  const normalizedPath = path.startsWith("/") ? path.slice(1) : path;
+  return normalizedPath || "state";
 };
 
 type AppLatestChangesProps = {
@@ -206,7 +206,7 @@ function resetTimelineState(
   lastCheckoutRevisionRef: MutableRefObject<Partial<Record<AppKey, number>>>,
 ) {
   lastCheckoutRevisionRef.current = {};
-  setMode('live');
+  setMode("live");
   setBoundaries([]);
   setSelectedMs(null);
   setDebouncedSelectedMs(null);
@@ -222,15 +222,15 @@ export function RouteNavigationBar() {
             <TooltipTrigger asChild>
               <NavLink
                 to={to}
-                end={to === '/'}
+                end={to === "/"}
                 aria-label={label}
                 className={({ isActive }) =>
                   cn(
                     buttonVariants({
-                      variant: isActive ? 'default' : 'ghost',
-                      size: 'icon',
+                      variant: isActive ? "default" : "ghost",
+                      size: "icon",
                     }),
-                    'rounded-xl',
+                    "rounded-xl",
                   )
                 }
               >
@@ -259,7 +259,7 @@ function TimelineFloater() {
     [transport.apps],
   );
 
-  const [mode, setMode] = useState<OverlayMode>('live');
+  const [mode, setMode] = useState<OverlayMode>("live");
   const [boundaries, setBoundaries] = useState<AppTimelineBoundary[]>([]);
   const [selectedMs, setSelectedMs] = useState<number | null>(null);
   const [debouncedSelectedMs, setDebouncedSelectedMs] = useState<number | null>(
@@ -271,7 +271,7 @@ function TimelineFloater() {
   const lastCheckoutRevisionRef = useRef<Partial<Record<AppKey, number>>>({});
   const checkoutRef = useRef(stateContext.checkout);
   const previousIsReplayRouteRef = useRef(false);
-  const isReplayRoute = location.pathname === '/replay';
+  const isReplayRoute = location.pathname === "/replay";
 
   useEffect(() => {
     checkoutRef.current = stateContext.checkout;
@@ -315,7 +315,7 @@ function TimelineFloater() {
   }, [selectedMs, timelineBounds]);
 
   const selectedRevisions = useMemo(() => {
-    if (mode !== 'timeline' || selectedMs == null) {
+    if (mode !== "timeline" || selectedMs == null) {
       return [] as Array<{ appKey: AppKey; revision: number }>;
     }
 
@@ -338,7 +338,7 @@ function TimelineFloater() {
   }, [appKeys.length, goLiveAll, stopLiveAll]);
 
   useEffect(() => {
-    if (mode !== 'timeline' || selectedMs == null) {
+    if (mode !== "timeline" || selectedMs == null) {
       return;
     }
 
@@ -361,7 +361,7 @@ function TimelineFloater() {
       );
 
       if (nextBoundaries.length === 0) {
-        throw new Error('No active session boundaries were available.');
+        throw new Error("No active session boundaries were available.");
       }
 
       const timelineEndMs = Math.max(
@@ -372,13 +372,13 @@ function TimelineFloater() {
       setBoundaries(nextBoundaries);
       setSelectedMs(timelineEndMs);
       setDebouncedSelectedMs(timelineEndMs);
-      setMode('timeline');
+      setMode("timeline");
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Failed to prepare timeline';
+        error instanceof Error ? error.message : "Failed to prepare timeline";
       toast.error(message);
       void goLiveAll();
-      setMode('live');
+      setMode("live");
     } finally {
       setIsPreparingTimeline(false);
     }
@@ -411,7 +411,7 @@ function TimelineFloater() {
       const message =
         error instanceof Error
           ? error.message
-          : 'Failed to return to live mode';
+          : "Failed to return to live mode";
       toast.error(message);
     } finally {
       setIsReturningToLive(false);
@@ -420,7 +420,7 @@ function TimelineFloater() {
 
   useEffect(() => {
     if (
-      mode !== 'timeline' ||
+      mode !== "timeline" ||
       debouncedSelectedMs == null ||
       boundaries.length === 0
     ) {
@@ -457,7 +457,7 @@ function TimelineFloater() {
         const message =
           error instanceof Error
             ? error.message
-            : 'Failed to checkout timeline state';
+            : "Failed to checkout timeline state";
         toast.error(message);
       } finally {
         if (!cancelled) {
@@ -494,35 +494,35 @@ function TimelineFloater() {
     <div className="pointer-events-none fixed inset-x-4 bottom-4  z-50 flex justify-end">
       <motion.div
         layout
-        transition={{ type: 'spring', stiffness: 220, damping: 26 }}
+        transition={{ type: "spring", stiffness: 220, damping: 26 }}
         className={cn(
-          'pointer-events-auto overflow-hidden border border-border/60 bg-background/90 shadow-2xl backdrop-blur-xl dark flex-row-reverse flex items-center gap-4 p-3 rounded-full',
-          mode === 'timeline' ? 'w-full rounded-3xl' : 'w-auto rounded-full',
+          "pointer-events-auto overflow-hidden border border-border/60 bg-background/90 shadow-2xl backdrop-blur-xl dark flex-row-reverse flex items-center gap-4 p-3 rounded-full",
+          mode === "timeline" ? "w-full rounded-3xl" : "w-auto rounded-full",
         )}
       >
         <div className="flex items-center gap-2 p-2 w-full">
           <Button
             size="icon"
-            variant={mode === 'live' ? 'default' : 'outline'}
+            variant={mode === "live" ? "default" : "outline"}
             onClick={() => {
-              if (mode === 'timeline') {
+              if (mode === "timeline") {
                 void returnToLive();
               }
             }}
-            disabled={mode === 'live' || isReturningToLive}
+            disabled={mode === "live" || isReturningToLive}
           >
             <Radio className="mr-2 size-4" />
           </Button>
 
           <Button
             size="icon"
-            variant={mode === 'timeline' ? 'default' : 'outline'}
+            variant={mode === "timeline" ? "default" : "outline"}
             onClick={() => {
-              if (mode !== 'timeline') {
+              if (mode !== "timeline") {
                 void loadTimeline();
               }
             }}
-            disabled={mode === 'timeline' || isPreparingTimeline}
+            disabled={mode === "timeline" || isPreparingTimeline}
           >
             {isPreparingTimeline ? (
               <Loader2 className="mr-2 size-4 animate-spin" />
@@ -532,13 +532,13 @@ function TimelineFloater() {
           </Button>
 
           <AnimatePresence initial={false}>
-            {mode === 'timeline' && timelineBounds && selectedMs != null ? (
+            {mode === "timeline" && timelineBounds && selectedMs != null ? (
               <motion.div
                 key="timeline-expanded"
                 initial={{ opacity: 0, width: 0 }}
-                animate={{ opacity: 1, width: '100%' }}
+                animate={{ opacity: 1, width: "100%" }}
                 exit={{ opacity: 0, width: 0 }}
-                transition={{ type: 'spring', stiffness: 220, damping: 28 }}
+                transition={{ type: "spring", stiffness: 220, damping: 28 }}
                 className="@container min-w-0 flex-1"
               >
                 <div className="flex min-w-0 flex-col gap-3 px-3 py-2">

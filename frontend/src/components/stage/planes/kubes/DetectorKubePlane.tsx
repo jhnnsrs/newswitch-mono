@@ -1,6 +1,6 @@
-import type { DetectorKubeStateSchema } from '@/apps/default/hooks/states/ExpanseState';
-import { type z } from 'zod';
-import { useThreeAffine } from './useThreeAffine';
+import type { DetectorKubeStateSchema } from "@/apps/default/hooks/states/ExpanseState";
+import { type z } from "zod";
+import { useThreeAffine } from "./useThreeAffine";
 
 type DetectorData = z.infer<typeof DetectorKubeStateSchema>;
 

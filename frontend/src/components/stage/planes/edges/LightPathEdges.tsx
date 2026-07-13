@@ -1,9 +1,9 @@
-import type { LightPathState } from '@/components/lightpathstate/LightPathStateRender';
-import { useMemo } from 'react';
-import * as THREE from 'three';
+import type { LightPathState } from "@/components/lightpathstate/LightPathStateRender";
+import { useMemo } from "react";
+import * as THREE from "three";
 
 type KubeWithAffine = Extract<
-  LightPathState['kubes'][number],
+  LightPathState["kubes"][number],
   { affine_matrix: number[][] }
 >;
 
@@ -45,9 +45,9 @@ const normalizeIntensity = (value: number | null | undefined): number => {
 };
 
 const hasAffineMatrix = (
-  kube: LightPathState['kubes'][number],
+  kube: LightPathState["kubes"][number],
 ): kube is KubeWithAffine => {
-  return 'affine_matrix' in kube;
+  return "affine_matrix" in kube;
 };
 
 export const LightPathEdges = ({ path }: { path: LightPathState }) => {

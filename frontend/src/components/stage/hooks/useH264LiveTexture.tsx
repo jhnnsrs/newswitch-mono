@@ -1,11 +1,11 @@
-import { H264_STREAM_PATH } from '@/constants';
-import type { Detector } from '@/apps/default/hooks/actions';
-import { useFrame } from '@react-three/fiber';
-import JMuxer from 'jmuxer';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { LinearFilter, SRGBColorSpace, VideoTexture } from 'three';
+import { H264_STREAM_PATH } from "@/constants";
+import type { Detector } from "@/apps/default/hooks/actions";
+import { useFrame } from "@react-three/fiber";
+import JMuxer from "jmuxer";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { LinearFilter, SRGBColorSpace, VideoTexture } from "three";
 
-type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'error';
+type ConnectionState = "disconnected" | "connecting" | "connected" | "error";
 
 type StreamStats = {
   bytesReceived: number;
@@ -27,7 +27,7 @@ export const useH264LiveTexture = ({
   setStats?: (stats: StreamStats) => void;
 }) => {
   const [connectionState, setConnectionState] =
-    useState<ConnectionState>('connecting');
+    useState<ConnectionState>("connecting");
 
   // Kept in a ref so that an unmemoized `setStats` prop does not tear down and
   // re-open the websocket on every render.
@@ -41,12 +41,12 @@ export const useH264LiveTexture = ({
   const statsRef = useRef<StreamStats>({ bytesReceived: 0, chunksReceived: 0 });
 
   const videoElement = useMemo(() => {
-    const video = document.createElement('video');
+    const video = document.createElement("video");
     video.muted = true;
     video.playsInline = true;
     video.autoplay = true;
     // Optimization for stream lag
-    video.setAttribute('webkit-playsinline', 'webkit-playsinline');
+    video.setAttribute("webkit-playsinline", "webkit-playsinline");
     return video;
   }, []);
 
@@ -63,7 +63,7 @@ export const useH264LiveTexture = ({
     try {
       jmuxerRef.current = new JMuxer({
         node: videoElement,
-        mode: 'video',
+        mode: "video",
         flushingTime: 0,
         fps: 30,
         debug: false,
@@ -71,10 +71,10 @@ export const useH264LiveTexture = ({
       });
 
       const socket = new WebSocket(`${url}/${detector.slot}`);
-      socket.binaryType = 'arraybuffer';
+      socket.binaryType = "arraybuffer";
       socketRef.current = socket;
 
-      socket.onopen = () => setConnectionState('connected');
+      socket.onopen = () => setConnectionState("connected");
       socket.onmessage = (event: MessageEvent) => {
         const chunk = new Uint8Array(event.data as ArrayBuffer);
         statsRef.current = {
@@ -84,17 +84,17 @@ export const useH264LiveTexture = ({
         setStatsRef.current?.({ ...statsRef.current });
         jmuxerRef.current?.feed({ video: chunk });
       };
-      socket.onerror = () => setConnectionState('error');
-      socket.onclose = () => setConnectionState('disconnected');
+      socket.onerror = () => setConnectionState("error");
+      socket.onclose = () => setConnectionState("disconnected");
     } catch (error) {
-      console.error('[Stage] Failed to initialize live stream', error);
+      console.error("[Stage] Failed to initialize live stream", error);
     }
 
     return () => {
       socketRef.current?.close();
       jmuxerRef.current?.destroy();
       videoElement.pause();
-      videoElement.src = '';
+      videoElement.src = "";
       videoElement.load();
     };
     // NOTE: `detector.slot` is part of the websocket URL, so it must be a dependency -

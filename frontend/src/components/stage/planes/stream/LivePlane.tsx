@@ -1,9 +1,9 @@
-import type { Detector } from '@/apps/default/hooks/actions';
-import { useCurrentAffineTransform } from '@/hooks/useCurrentAffineTransform';
-import { useFrame } from '@react-three/fiber';
-import { useMemo, useRef } from 'react';
-import { DoubleSide, Matrix4, Mesh } from 'three';
-import { useH264LiveTexture } from '../../hooks/useH264LiveTexture';
+import type { Detector } from "@/apps/default/hooks/actions";
+import { useCurrentAffineTransform } from "@/hooks/useCurrentAffineTransform";
+import { useFrame } from "@react-three/fiber";
+import { useMemo, useRef } from "react";
+import { DoubleSide, Matrix4, Mesh } from "three";
+import { useH264LiveTexture } from "../../hooks/useH264LiveTexture";
 
 export const LivePlane = (props: { detector: Detector }) => {
   const meshRef = useRef<Mesh>(null);

@@ -1,10 +1,10 @@
-import { applyPatch, type Operation } from 'fast-json-patch';
-import type { SnapshotEnvelope } from '@/lib/rekuest/state/store';
+import { applyPatch, type Operation } from "fast-json-patch";
+import type { SnapshotEnvelope } from "@/lib/rekuest/state/store";
 import type {
   RetrieverPatchEventResponse,
   RevisedStatesSnapshotMap,
   StateSegmentsResponse,
-} from '@/lib/rekuest/transport/types';
+} from "@/lib/rekuest/transport/types";
 
 export const DEFAULT_MAX_LOCAL_MATERIALIZATION_EVENTS = 250;
 export const DEFAULT_FORWARD_EVENT_WINDOW = 50;
@@ -20,7 +20,7 @@ export type LocalMaterializationPlan = {
   eventCount: number;
 };
 
-const deepClone = <T,>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
+const deepClone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
 /**
  * The transport API accepts revision identifiers as `string | number`, but the
@@ -30,7 +30,8 @@ const deepClone = <T,>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 export function toNumericGlobalRevision(
   revision: string | number,
 ): number | null {
-  const numericRevision = typeof revision === 'number' ? revision : Number(revision);
+  const numericRevision =
+    typeof revision === "number" ? revision : Number(revision);
   return Number.isFinite(numericRevision) ? numericRevision : null;
 }
 
@@ -49,7 +50,9 @@ export function toSnapshotMap(
 }
 
 function hasAllStateKeys(snapshot: SnapshotEnvelope, stateKeys: string[]) {
-  const availableKeys = new Set(snapshot.state_snapshots.map((entry) => entry.name));
+  const availableKeys = new Set(
+    snapshot.state_snapshots.map((entry) => entry.name),
+  );
   return stateKeys.every((stateKey) => availableKeys.has(stateKey));
 }
 
@@ -69,7 +72,10 @@ function normalizePatchOperations(patch: unknown): Operation[] {
   return [patch as Operation];
 }
 
-function sortPatchEvents(left: RetrieverPatchEventResponse, right: RetrieverPatchEventResponse) {
+function sortPatchEvents(
+  left: RetrieverPatchEventResponse,
+  right: RetrieverPatchEventResponse,
+) {
   if (left.global_current_rev !== right.global_current_rev) {
     return left.global_current_rev - right.global_current_rev;
   }
@@ -82,7 +88,9 @@ function sortPatchEvents(left: RetrieverPatchEventResponse, right: RetrieverPatc
     return left.current_rev - right.current_rev;
   }
 
-  return new Date(left.timepoint).getTime() - new Date(right.timepoint).getTime();
+  return (
+    new Date(left.timepoint).getTime() - new Date(right.timepoint).getTime()
+  );
 }
 
 function resolveMaterializedStateKey(
@@ -122,7 +130,8 @@ export function buildLocalMaterializationPlan(
       (
         snapshot,
       ): snapshot is { snapshot: SnapshotEnvelope; numericRevision: number } =>
-        snapshot.numericRevision !== null && snapshot.numericRevision <= targetRevision,
+        snapshot.numericRevision !== null &&
+        snapshot.numericRevision <= targetRevision,
     )
     .sort((left, right) => right.numericRevision - left.numericRevision);
 
@@ -137,8 +146,8 @@ export function buildLocalMaterializationPlan(
     while (cursor < targetRevision) {
       const nextSegment = sortedSegments.find(
         (segment) =>
-          segment.from_global_revision === cursor
-          && segment.to_global_revision <= targetRevision,
+          segment.from_global_revision === cursor &&
+          segment.to_global_revision <= targetRevision,
       );
 
       if (!nextSegment) {
@@ -180,7 +189,9 @@ export function materializeSnapshotMap(
         materialized,
         patchEvent.state_id,
       );
-      const currentState = resolvedStateKey ? materialized[resolvedStateKey] : undefined;
+      const currentState = resolvedStateKey
+        ? materialized[resolvedStateKey]
+        : undefined;
 
       if (!resolvedStateKey || !currentState) {
         throw new Error(

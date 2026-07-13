@@ -11,19 +11,19 @@ export interface SelectionState {
 
 export const createSelectionStore = () =>
   createStore<SelectionState>()(
-  immer((set) => ({
-    selectedImageId: null,
-    setSelectedImageId: (id) =>
-      set((state) => {
-        state.selectedImageId = id;
-      }),
-    selectedFrameId: null,
-    setSelectedFrameId: (id) =>
-      set((state) => {
-        state.selectedFrameId = id;
-      }),
-  })),
-);
+    immer((set) => ({
+      selectedImageId: null,
+      setSelectedImageId: (id) =>
+        set((state) => {
+          state.selectedImageId = id;
+        }),
+      selectedFrameId: null,
+      setSelectedFrameId: (id) =>
+        set((state) => {
+          state.selectedFrameId = id;
+        }),
+    })),
+  );
 
 const {
   StoreContext: SelectionStoreContext,

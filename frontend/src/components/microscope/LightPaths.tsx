@@ -1,4 +1,4 @@
-import { useLightPathState } from '@/apps/default/hooks/states';
+import { useLightPathState } from "@/apps/default/hooks/states";
 
 export const LightPaths = () => {
   const { data } = useLightPathState({ subscribe: true });
@@ -15,7 +15,7 @@ export const LightPaths = () => {
                 {/* __identifier is the runtime discriminant. `__brand` is a zod brand:
                     type-level only, undefined at runtime - so comparing against it was
                     always false and every kube rendered as a detector kube. */}
-                {kube.__identifier === 'objective_kube'
+                {kube.__identifier === "objective_kube"
                   ? `Objective Kube: ${kube.kube_id}`
                   : `Detector Kube: ${kube.kube_id}`}
               </li>
@@ -25,8 +25,8 @@ export const LightPaths = () => {
           <ul className="list-disc list-inside">
             {value.edges.map((edge, index) => (
               <li key={index}>
-                {edge.source} → {edge.target} (Intensity:{' '}
-                {edge.intensity !== null ? edge.intensity : 'N/A'})
+                {edge.source} → {edge.target} (Intensity:{" "}
+                {edge.intensity !== null ? edge.intensity : "N/A"})
               </li>
             ))}
           </ul>

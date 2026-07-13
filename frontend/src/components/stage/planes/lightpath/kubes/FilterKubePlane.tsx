@@ -1,7 +1,7 @@
-import * as THREE from 'three';
-import { type z } from 'zod';
-import { useThreeAffine } from './useThreeAffine';
-import type { FilterKubeSchema } from '@/apps/default/hooks/states';
+import * as THREE from "three";
+import { type z } from "zod";
+import { useThreeAffine } from "./useThreeAffine";
+import type { FilterKubeSchema } from "@/apps/default/hooks/states";
 
 type FilterData = z.infer<typeof FilterKubeSchema>;
 
@@ -37,7 +37,7 @@ function wavelengthToHex(wavelength: number): string {
     b = 0;
   } else {
     // Fallback for non-visible wavelengths (e.g., UV or IR)
-    return '#cbd5e1';
+    return "#cbd5e1";
   }
 
   // Intensity modulation to fade out the edges of the visible spectrum
@@ -50,7 +50,7 @@ function wavelengthToHex(wavelength: number): string {
 
   const toHex = (c: number) => {
     const hex = Math.round(c * factor * 255).toString(16);
-    return hex.length === 1 ? '0' + hex : hex;
+    return hex.length === 1 ? "0" + hex : hex;
   };
 
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
@@ -62,7 +62,7 @@ export const FilterKubePlane = ({ data }: { data: FilterData }) => {
   // Calculate the color based on the wavelength, defaulting to clear/gray if undefined
   const filterColor = data.wavelength
     ? wavelengthToHex(data.wavelength)
-    : '#e2e8f0';
+    : "#e2e8f0";
 
   return (
     <group matrix={matrix} matrixAutoUpdate={false}>

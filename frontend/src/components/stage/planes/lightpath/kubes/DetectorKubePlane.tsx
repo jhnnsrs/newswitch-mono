@@ -1,7 +1,7 @@
-import { useCameraState } from '@/apps/default/hooks/states/CameraState';
-import type { DetectorKubeSchema } from '@/apps/default/hooks/states/LightPathState';
-import { type z } from 'zod';
-import { useThreeAffine } from './useThreeAffine';
+import { useCameraState } from "@/apps/default/hooks/states/CameraState";
+import type { DetectorKubeSchema } from "@/apps/default/hooks/states/LightPathState";
+import { type z } from "zod";
+import { useThreeAffine } from "./useThreeAffine";
 
 type DetectorData = z.infer<typeof DetectorKubeSchema>;
 

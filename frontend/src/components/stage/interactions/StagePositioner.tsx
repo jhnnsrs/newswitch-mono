@@ -1,11 +1,11 @@
-import { useMoveStage } from '@/apps/default/hooks/actions';
-import { useStageState } from '@/apps/default/hooks/states/StageState';
-import { Html, Line } from '@react-three/drei';
-import { useState } from 'react';
-import type { Vector3 } from 'three';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { useModeStore } from '@/store/modeStore';
+import { useMoveStage } from "@/apps/default/hooks/actions";
+import { useStageState } from "@/apps/default/hooks/states/StageState";
+import { Html, Line } from "@react-three/drei";
+import { useState } from "react";
+import type { Vector3 } from "three";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { useModeStore } from "@/store/modeStore";
 
 /**
  * Crosshair (Fadenkreuz) Component
@@ -114,7 +114,7 @@ export const StagePositioner = () => {
   const { data: stageState } = useStageState({ subscribe: true });
   const { call: moveToPosition } = useMoveStage();
 
-  if (interactionMode !== 'MOVE') return null;
+  if (interactionMode !== "MOVE") return null;
 
   return (
     <group>

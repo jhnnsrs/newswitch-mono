@@ -13,14 +13,14 @@ interface KubeStore {
 
 export const createKubeStore = () =>
   createStore<KubeStore>()(
-  immer((set) => ({
-    selectedKube: null,
-    setSelectedKube: (id) =>
-      set((state) => {
-        state.selectedKube = id;
-      }),
-  })),
-);
+    immer((set) => ({
+      selectedKube: null,
+      setSelectedKube: (id) =>
+        set((state) => {
+          state.selectedKube = id;
+        }),
+    })),
+  );
 
 const {
   StoreContext: KubeStoreContext,

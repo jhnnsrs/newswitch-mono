@@ -1,10 +1,10 @@
-import JMuxer from 'jmuxer';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import JMuxer from "jmuxer";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 // --- Types for JMuxer (since it lacks official types) ---
 interface JMuxerOptions {
   node: HTMLVideoElement;
-  mode: 'video' | 'audio' | 'both';
+  mode: "video" | "audio" | "both";
   flushingTime?: number;
   fps?: number;
   debug?: boolean;
@@ -26,7 +26,7 @@ interface JMuxerInstance {
 }
 // -------------------------------------------------------
 
-type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'error';
+type ConnectionState = "disconnected" | "connecting" | "connected" | "error";
 
 interface LiveViewProps {
   /** WebSocket URL for the video stream */
@@ -48,7 +48,7 @@ interface LiveViewProps {
 }
 
 export const StreamingView: React.FC<LiveViewProps> = ({
-  url = import.meta.env.VITE_WEBSOCKET_URL + '/video',
+  url = import.meta.env.VITE_WEBSOCKET_URL + "/video",
   autoReconnect = true,
   reconnectDelay = 2000,
   maxReconnectAttempts = 5,
@@ -67,7 +67,7 @@ export const StreamingView: React.FC<LiveViewProps> = ({
   const isCleaningUpRef = useRef(false);
 
   const [connectionState, setConnectionState] =
-    useState<ConnectionState>('disconnected');
+    useState<ConnectionState>("disconnected");
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState({ bytesReceived: 0, chunksReceived: 0 });
 
@@ -104,14 +104,14 @@ export const StreamingView: React.FC<LiveViewProps> = ({
       try {
         jmuxerRef.current.destroy();
       } catch (e) {
-        console.error('Error destroying JMuxer:', e);
+        console.error("Error destroying JMuxer:", e);
       }
       jmuxerRef.current = null;
     }
 
     // Clear video source
     if (videoRef.current) {
-      videoRef.current.src = '';
+      videoRef.current.src = "";
       videoRef.current.load();
     }
 
@@ -123,7 +123,7 @@ export const StreamingView: React.FC<LiveViewProps> = ({
     if (isCleaningUpRef.current) return;
     if (!videoRef.current) return;
 
-    setConnectionState('connecting');
+    setConnectionState("connecting");
     setError(null);
 
     try {
@@ -137,15 +137,15 @@ export const StreamingView: React.FC<LiveViewProps> = ({
 
       jmuxerRef.current = new JMuxerCtor({
         node: videoRef.current,
-        mode: 'video',
+        mode: "video",
         flushingTime: 0, // 0 = Immediate playback for lowest latency
         fps: 30, // Must match server FPS
         debug: false,
         clearBuffer: true,
         onError: (data: unknown) => {
-          console.error('JMuxer error:', data);
+          console.error("JMuxer error:", data);
           // If buffer is broken, we might want to force a reconnect
-          if (String(data).includes('Invalid NAL unit')) {
+          if (String(data).includes("Invalid NAL unit")) {
             // Optional: Handle corruption
           }
         },
@@ -153,13 +153,13 @@ export const StreamingView: React.FC<LiveViewProps> = ({
 
       // 2. Connect WebSocket
       const socket = new WebSocket(url);
-      socket.binaryType = 'arraybuffer';
+      socket.binaryType = "arraybuffer";
       socketRef.current = socket;
 
       socket.onopen = () => {
         if (isCleaningUpRef.current) return;
-        console.log('Video stream connected');
-        setConnectionState('connected');
+        console.log("Video stream connected");
+        setConnectionState("connected");
         reconnectAttemptsRef.current = 0;
         setStats({ bytesReceived: 0, chunksReceived: 0 });
       };
@@ -183,16 +183,16 @@ export const StreamingView: React.FC<LiveViewProps> = ({
       };
 
       socket.onerror = (event) => {
-        console.error('WebSocket error:', event);
-        setError('WebSocket connection error');
-        setConnectionState('error');
+        console.error("WebSocket error:", event);
+        setError("WebSocket connection error");
+        setConnectionState("error");
       };
 
       socket.onclose = (event) => {
         if (isCleaningUpRef.current) return;
 
-        console.log('Video stream disconnected:', event.code, event.reason);
-        setConnectionState('disconnected');
+        console.log("Video stream disconnected:", event.code, event.reason);
+        setConnectionState("disconnected");
 
         // Handle reconnection
         if (
@@ -212,11 +212,11 @@ export const StreamingView: React.FC<LiveViewProps> = ({
         }
       };
     } catch (err) {
-      console.error('Error setting up stream:', err);
+      console.error("Error setting up stream:", err);
       setError(
-        err instanceof Error ? err.message : 'Failed to set up video stream',
+        err instanceof Error ? err.message : "Failed to set up video stream",
       );
-      setConnectionState('error');
+      setConnectionState("error");
     }
   }, [url, autoReconnect, reconnectDelay, maxReconnectAttempts, cleanup]);
 
@@ -247,15 +247,15 @@ export const StreamingView: React.FC<LiveViewProps> = ({
 
   // Format bytes for display
   const formatBytes = (bytes: number): string => {
-    if (bytes === 0) return '0 B';
+    if (bytes === 0) return "0 B";
     const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const sizes = ["B", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
   };
 
   return (
-    <div className={`relative w-full h-full ${className || ''}`}>
+    <div className={`relative w-full h-full ${className || ""}`}>
       {/* Video element - fills container */}
       <video
         ref={videoRef}
@@ -269,17 +269,17 @@ export const StreamingView: React.FC<LiveViewProps> = ({
       <div className="absolute top-2 right-2 flex items-center gap-2 text-xs bg-black/60 px-2 py-1 rounded">
         <div
           className={`w-2 h-2 rounded-full ${
-            connectionState === 'connected'
-              ? 'bg-green-500'
-              : connectionState === 'connecting'
-                ? 'bg-yellow-500 animate-pulse'
-                : connectionState === 'error'
-                  ? 'bg-red-500'
-                  : 'bg-gray-500'
+            connectionState === "connected"
+              ? "bg-green-500"
+              : connectionState === "connecting"
+                ? "bg-yellow-500 animate-pulse"
+                : connectionState === "error"
+                  ? "bg-red-500"
+                  : "bg-gray-500"
           }`}
         />
         <span className="text-white/80 capitalize">{connectionState}</span>
-        {connectionState === 'connected' && (
+        {connectionState === "connected" && (
           <span className="text-white/50">
             {formatBytes(stats.bytesReceived)}
           </span>
@@ -287,7 +287,7 @@ export const StreamingView: React.FC<LiveViewProps> = ({
       </div>
 
       {/* Capture button */}
-      {onCapture && connectionState === 'connected' && (
+      {onCapture && connectionState === "connected" && (
         <button
           onClick={onCapture}
           disabled={isCapturing || isCaptureDisabled}
@@ -312,14 +312,14 @@ export const StreamingView: React.FC<LiveViewProps> = ({
               d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
             />
           </svg>
-          {isCapturing ? 'Capturing...' : 'Capture'}
+          {isCapturing ? "Capturing..." : "Capture"}
         </button>
       )}
 
       {/* Overlay for disconnected state */}
-      {connectionState !== 'connected' && (
+      {connectionState !== "connected" && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70">
-          {connectionState === 'connecting' && (
+          {connectionState === "connecting" && (
             <div className="flex flex-col items-center gap-2">
               <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
               <span className="text-white text-sm">
@@ -327,8 +327,8 @@ export const StreamingView: React.FC<LiveViewProps> = ({
               </span>
             </div>
           )}
-          {(connectionState === 'disconnected' ||
-            connectionState === 'error') && (
+          {(connectionState === "disconnected" ||
+            connectionState === "error") && (
             <div className="flex flex-col items-center gap-3">
               {error && (
                 <span className="text-red-400 text-sm max-w-xs text-center">

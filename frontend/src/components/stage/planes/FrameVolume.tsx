@@ -1,18 +1,18 @@
-import { useViewerStore } from '@/store/viewerStore';
-import { open } from 'zarrita';
-import type { AbsolutePath } from '@zarrita/storage';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import * as THREE from 'three';
-import type { Frame } from '../hooks/zarr/types';
-import type { ChunkData } from '../stores/types';
-import { mapDTypeToMinMax } from '../stores/utils';
-import { ChunkVolume } from './ChunkVolume';
-import { redColormap } from '../hooks/zarr/colormaps';
-import { useSelectionStore } from '@/store/imageStore';
+import { useViewerStore } from "@/store/viewerStore";
+import { open } from "zarrita";
+import type { AbsolutePath } from "@zarrita/storage";
+import { useEffect, useMemo, useRef, useState } from "react";
+import * as THREE from "three";
+import type { Frame } from "../hooks/zarr/types";
+import type { ChunkData } from "../stores/types";
+import { mapDTypeToMinMax } from "../stores/utils";
+import { ChunkVolume } from "./ChunkVolume";
+import { redColormap } from "../hooks/zarr/colormaps";
+import { useSelectionStore } from "@/store/imageStore";
 
 const InvertedHullOutline = ({
   children,
-  color = '#10b981',
+  color = "#10b981",
   thickness = 1.03,
   enabled = true,
 }: {
@@ -32,9 +32,9 @@ const InvertedHullOutline = ({
       if (child instanceof THREE.Mesh && !child.userData.isOutline) {
         if (
           child.material instanceof THREE.Material &&
-          'transparent' in child.material &&
+          "transparent" in child.material &&
           child.material.transparent &&
-          'opacity' in child.material &&
+          "opacity" in child.material &&
           child.material.opacity < 0.5
         ) {
           return;
@@ -72,7 +72,6 @@ const InvertedHullOutline = ({
   return <group ref={groupRef}>{children}</group>;
 };
 
-
 // --- 2. The Main Frame Plane ---
 
 export const FrameVolume = ({ frame }: { frame: Frame }) => {
@@ -92,7 +91,9 @@ export const FrameVolume = ({ frame }: { frame: Frame }) => {
         const arr = await open.v3(store, { kind: "array" });
 
         if (!isMounted) return;
-        console.log(`Initialized Zarr for Frame ${frame.id}: shape=${arr.shape}, dtype=${arr.dtype}`);
+        console.log(
+          `Initialized Zarr for Frame ${frame.id}: shape=${arr.shape}, dtype=${arr.dtype}`,
+        );
 
         const shape = arr.shape;
         const dtype = arr.dtype;
@@ -122,7 +123,7 @@ export const FrameVolume = ({ frame }: { frame: Frame }) => {
                 max_value: frame.metadata.max_value ?? max_val,
                 metadata: frame.metadata,
                 array_metadata: frame.array_metadata,
-                colormapTexture: colormapTexture
+                colormapTexture: colormapTexture,
               });
             }
           }
@@ -145,39 +146,67 @@ export const FrameVolume = ({ frame }: { frame: Frame }) => {
   const affineMatrix = useMemo(() => {
     const mat = new THREE.Matrix4();
     if (!frame.metadata.affine_matrix) return mat;
-    
+
     const rawMat = frame.metadata.affine_matrix;
     if (rawMat.length === 3) {
       mat.set(
-        rawMat[0][0], rawMat[0][1], 0, rawMat[0][2],
-        rawMat[1][0], rawMat[1][1], 0, rawMat[1][2],
-        0, 0, 1, 0,
-        rawMat[2][0], rawMat[2][1], 0, rawMat[2][2]
+        rawMat[0][0],
+        rawMat[0][1],
+        0,
+        rawMat[0][2],
+        rawMat[1][0],
+        rawMat[1][1],
+        0,
+        rawMat[1][2],
+        0,
+        0,
+        1,
+        0,
+        rawMat[2][0],
+        rawMat[2][1],
+        0,
+        rawMat[2][2],
       );
     } else if (rawMat.length === 4) {
       mat.set(
-        rawMat[0][0], rawMat[0][1], rawMat[0][2], rawMat[0][3],
-        rawMat[1][0], rawMat[1][1], rawMat[1][2], rawMat[1][3],
-        rawMat[2][0], rawMat[2][1], rawMat[2][2], rawMat[2][3],
-        rawMat[3][0], rawMat[3][1], rawMat[3][2], rawMat[3][3]
+        rawMat[0][0],
+        rawMat[0][1],
+        rawMat[0][2],
+        rawMat[0][3],
+        rawMat[1][0],
+        rawMat[1][1],
+        rawMat[1][2],
+        rawMat[1][3],
+        rawMat[2][0],
+        rawMat[2][1],
+        rawMat[2][2],
+        rawMat[2][3],
+        rawMat[3][0],
+        rawMat[3][1],
+        rawMat[3][2],
+        rawMat[3][3],
       );
     }
     return mat;
   }, [frame]);
 
   if (!chunks) {
-    return null; 
+    return null;
   }
 
   return (
-    <group matrix={affineMatrix} matrixAutoUpdate={false} onClick={(e) => {
-                e.stopPropagation();
-                if (isSelected) {
-                  setSelectedFrameId(null);
-                } else {
-                  setSelectedFrameId(frame.id);
-                }
-              }}>
+    <group
+      matrix={affineMatrix}
+      matrixAutoUpdate={false}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (isSelected) {
+          setSelectedFrameId(null);
+        } else {
+          setSelectedFrameId(frame.id);
+        }
+      }}
+    >
       <InvertedHullOutline enabled={isSelected}>
         {chunks.map((chunk) => (
           <ChunkVolume key={chunk.chunk_key} chunk={chunk} />

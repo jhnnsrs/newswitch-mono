@@ -37,8 +37,7 @@ export function LiveView() {
             </Badge>
           )}
           {cameraState && (
-            <Badge variant="secondary" className="text-xs">
-            </Badge>
+            <Badge variant="secondary" className="text-xs"></Badge>
           )}
         </div>
 
@@ -51,7 +50,6 @@ export function LiveView() {
             </Badge>
           )}
         </div>
-
       </div>
     </div>
   );

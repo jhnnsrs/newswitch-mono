@@ -1,10 +1,10 @@
-import { Card } from '@/components/ui/card';
-import { useExpanseState } from '@/apps/default/hooks/states';
-import { useSelectionStore } from '@/store/imageStore';
-import { useModeStore } from '@/store/modeStore';
-import { useViewStore } from '@/store/viewStore';
-import { useMemo } from 'react';
-import * as THREE from 'three';
+import { Card } from "@/components/ui/card";
+import { useExpanseState } from "@/apps/default/hooks/states";
+import { useSelectionStore } from "@/store/imageStore";
+import { useModeStore } from "@/store/modeStore";
+import { useViewStore } from "@/store/viewStore";
+import { useMemo } from "react";
+import * as THREE from "three";
 
 export const FramePanel = () => {
   // 1. Get Domain Data
@@ -80,8 +80,8 @@ export const FramePanel = () => {
   ]);
 
   // Early returns if data is missing or out of bounds
-  if (displayMode !== '3D') return null;
-  if (interactionMode === 'META') return null;
+  if (displayMode !== "3D") return null;
+  if (interactionMode === "META") return null;
   if (!selectedFrame || !screenPos) return null;
 
   return (

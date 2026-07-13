@@ -15,33 +15,33 @@ export interface TimeState {
 
 export const createTimeStore = () =>
   createStore<TimeState>()(
-  immer((set) => ({
-    from: null,
-    to: null,
-    rangeFrom: null,
-    rangeTo: null,
-    setInterval: (from, to) =>
-      set((state) => {
-        state.from = from;
-        state.to = to;
-      }),
-    setRange: (from, to) =>
-      set((state) => {
-        state.rangeFrom = from;
-        state.rangeTo = to;
-      }),
-    resetRange: () =>
-      set((state) => {
-        state.rangeFrom = null;
-        state.rangeTo = null;
-      }),
-    resetInterval: () =>
-      set((state) => {
-        state.from = null;
-        state.to = null;
-      }),
-  })),
-);
+    immer((set) => ({
+      from: null,
+      to: null,
+      rangeFrom: null,
+      rangeTo: null,
+      setInterval: (from, to) =>
+        set((state) => {
+          state.from = from;
+          state.to = to;
+        }),
+      setRange: (from, to) =>
+        set((state) => {
+          state.rangeFrom = from;
+          state.rangeTo = to;
+        }),
+      resetRange: () =>
+        set((state) => {
+          state.rangeFrom = null;
+          state.rangeTo = null;
+        }),
+      resetInterval: () =>
+        set((state) => {
+          state.from = null;
+          state.to = null;
+        }),
+    })),
+  );
 
 const {
   StoreContext: TimeStoreContext,

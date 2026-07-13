@@ -1,9 +1,9 @@
-import type { ComponentProps, ReactNode } from 'react';
-import { BundleProvider } from './BundleProvider';
-import { RekuestStoreProvider } from './RekuestStoreProvider';
-import type { TransportConfig } from './transport';
-import { TransportProvider } from './transport';
-import type { RekuestAppDefinition, RekuestAppsDefinition } from './types';
+import type { ComponentProps, ReactNode } from "react";
+import { BundleProvider } from "./BundleProvider";
+import { RekuestStoreProvider } from "./RekuestStoreProvider";
+import type { TransportConfig } from "./transport";
+import { TransportProvider } from "./transport";
+import type { RekuestAppDefinition, RekuestAppsDefinition } from "./types";
 
 type ScopedProviderDefinition<
   TKey extends string = string,
@@ -14,7 +14,7 @@ type ScopedProviderDefinition<
   | RekuestAppsDefinition<TKey, TActions, TLocks, TStates>
   | RekuestAppDefinition<TKey, TActions, TLocks, TStates>;
 
-type TransportProviderApps = ComponentProps<typeof TransportProvider>['apps'];
+type TransportProviderApps = ComponentProps<typeof TransportProvider>["apps"];
 
 type TransportEndpointConfig = {
   kind?: string;
@@ -31,9 +31,8 @@ type ScopedProviderTransportConfig<TKey extends string> =
   | TransportConfig
   | TransportEndpointMap<TKey>;
 
-type ScopedAppStateUpdateIntervals<TStates extends Record<string, unknown>> = Partial<
-  Record<Extract<keyof TStates, string> | '*', number>
->;
+type ScopedAppStateUpdateIntervals<TStates extends Record<string, unknown>> =
+  Partial<Record<Extract<keyof TStates, string> | "*", number>>;
 
 type ScopedProviderStateUpdateIntervals<
   TKey extends string,
@@ -62,7 +61,7 @@ export interface CreateScopedProviderOptions<
   debug?: boolean;
   stateUpdateIntervals?: ScopedProviderStateUpdateIntervals<TKey, TStates>;
   latestPatchesBufferSize?: number;
-  reconnect?: TransportConfig['reconnect'];
+  reconnect?: TransportConfig["reconnect"];
   pingInterval?: number;
 }
 
@@ -80,8 +79,8 @@ export interface ScopedProviderProps<
   latestPatchesBufferSize?: number;
 }
 
-const DEFAULT_SCOPE = 'default';
-const DEFAULT_INSTANCE_ID = 'rekuest-scoped-provider';
+const DEFAULT_SCOPE = "default";
+const DEFAULT_INSTANCE_ID = "rekuest-scoped-provider";
 
 const isSingleAppDefinition = <
   TKey extends string,
@@ -92,17 +91,17 @@ const isSingleAppDefinition = <
   definition: ScopedProviderDefinition<TKey, TActions, TLocks, TStates>,
 ): definition is RekuestAppDefinition<TKey, TActions, TLocks, TStates> => {
   return (
-    'key' in definition &&
-    'actions' in definition &&
-    'locks' in definition &&
-    'states' in definition
+    "key" in definition &&
+    "actions" in definition &&
+    "locks" in definition &&
+    "states" in definition
   );
 };
 
 const isTransportConfig = <TKey extends string>(
   config: ScopedProviderTransportConfig<TKey>,
 ): config is TransportConfig => {
-  return 'apiEndpoint' in config && 'instanceId' in config;
+  return "apiEndpoint" in config && "instanceId" in config;
 };
 
 const normalizeDefinition = <
@@ -133,8 +132,8 @@ const normalizeDefinition = <
 const toApiEndpointFromUrl = (url: string) => {
   const resolved = new URL(url);
 
-  if (resolved.protocol === 'ws:' || resolved.protocol === 'wss:') {
-    resolved.protocol = resolved.protocol === 'wss:' ? 'https:' : 'http:';
+  if (resolved.protocol === "ws:" || resolved.protocol === "wss:") {
+    resolved.protocol = resolved.protocol === "wss:" ? "https:" : "http:";
   }
 
   return resolved.toString();
@@ -143,19 +142,25 @@ const toApiEndpointFromUrl = (url: string) => {
 const toWsEndpointFromUrl = (url: string) => {
   const resolved = new URL(url);
 
-  if (resolved.protocol === 'http:' || resolved.protocol === 'https:') {
-    resolved.protocol = resolved.protocol === 'https:' ? 'wss:' : 'ws:';
+  if (resolved.protocol === "http:" || resolved.protocol === "https:") {
+    resolved.protocol = resolved.protocol === "https:" ? "wss:" : "ws:";
   }
 
   return resolved.toString();
 };
 
 const normalizeEndpoint = (endpoint: TransportEndpointConfig) => {
-  const apiEndpoint = endpoint.apiEndpoint ?? (endpoint.url ? toApiEndpointFromUrl(endpoint.url) : undefined);
-  const wsEndpoint = endpoint.wsEndpoint ?? (endpoint.url ? toWsEndpointFromUrl(endpoint.url) : undefined);
+  const apiEndpoint =
+    endpoint.apiEndpoint ??
+    (endpoint.url ? toApiEndpointFromUrl(endpoint.url) : undefined);
+  const wsEndpoint =
+    endpoint.wsEndpoint ??
+    (endpoint.url ? toWsEndpointFromUrl(endpoint.url) : undefined);
 
   if (!apiEndpoint) {
-    throw new Error('Scoped provider transport config requires an apiEndpoint or url.');
+    throw new Error(
+      "Scoped provider transport config requires an apiEndpoint or url.",
+    );
   }
 
   return {
@@ -167,9 +172,12 @@ const normalizeEndpoint = (endpoint: TransportEndpointConfig) => {
 const buildTransportConfig = <TKey extends string>(
   config: ScopedProviderTransportConfig<TKey>,
   instanceId: string,
-  reconnect?: TransportConfig['reconnect'],
+  reconnect?: TransportConfig["reconnect"],
   pingInterval?: number,
-  stateUpdateIntervals?: ScopedProviderStateUpdateIntervals<TKey, Record<string, unknown>>,
+  stateUpdateIntervals?: ScopedProviderStateUpdateIntervals<
+    TKey,
+    Record<string, unknown>
+  >,
   overrides?: Partial<TransportConfig>,
 ): TransportConfig => {
   if (isTransportConfig(config)) {
@@ -178,28 +186,33 @@ const buildTransportConfig = <TKey extends string>(
       ...overrides,
       instanceId: overrides?.instanceId ?? instanceId ?? config.instanceId,
       appStateUpdateIntervals:
-        overrides?.appStateUpdateIntervals
-        ?? stateUpdateIntervals
-        ?? config.appStateUpdateIntervals,
+        overrides?.appStateUpdateIntervals ??
+        stateUpdateIntervals ??
+        config.appStateUpdateIntervals,
       reconnect: overrides?.reconnect ?? reconnect ?? config.reconnect,
-      pingInterval: overrides?.pingInterval ?? pingInterval ?? config.pingInterval,
+      pingInterval:
+        overrides?.pingInterval ?? pingInterval ?? config.pingInterval,
     };
   }
 
   const selectedEntry = Object.entries(config).find(
-    (entry): entry is [string, TransportEndpointConfig] => entry[1] !== undefined,
+    (entry): entry is [string, TransportEndpointConfig] =>
+      entry[1] !== undefined,
   );
 
   const selected = selectedEntry?.[1];
 
   if (!selected) {
-    throw new Error('No transport endpoint configured for scoped provider.');
+    throw new Error("No transport endpoint configured for scoped provider.");
   }
 
   const normalizedSelected = normalizeEndpoint(selected);
   const appEndpoints = Object.fromEntries(
     Object.entries(config)
-      .filter((entry): entry is [string, TransportEndpointConfig] => entry[1] !== undefined)
+      .filter(
+        (entry): entry is [string, TransportEndpointConfig] =>
+          entry[1] !== undefined,
+      )
       .map(([key, value]) => [key, normalizeEndpoint(value)]),
   );
 
@@ -207,7 +220,8 @@ const buildTransportConfig = <TKey extends string>(
     apiEndpoint: normalizedSelected.apiEndpoint,
     wsEndpoint: normalizedSelected.wsEndpoint,
     instanceId: overrides?.instanceId ?? instanceId,
-    appStateUpdateIntervals: overrides?.appStateUpdateIntervals ?? stateUpdateIntervals,
+    appStateUpdateIntervals:
+      overrides?.appStateUpdateIntervals ?? stateUpdateIntervals,
     reconnect: overrides?.reconnect ?? reconnect,
     pingInterval: overrides?.pingInterval ?? pingInterval,
     appEndpoints,
@@ -215,13 +229,10 @@ const buildTransportConfig = <TKey extends string>(
   };
 };
 
-const buildScopeKey = (
-  scope: string,
-  revision?: string | number,
-) => {
+const buildScopeKey = (scope: string, revision?: string | number) => {
   return [scope, revision == null ? null : `revision-${revision}`]
     .filter((value): value is string => value !== null)
-    .join(':');
+    .join(":");
 };
 
 export function createScopedProvider<
@@ -258,7 +269,10 @@ export function createScopedProvider<
       instanceIdOverride ?? instanceId,
       reconnect,
       pingInterval,
-      stateUpdateIntervals as ScopedProviderStateUpdateIntervals<TKey, Record<string, unknown>>,
+      stateUpdateIntervals as ScopedProviderStateUpdateIntervals<
+        TKey,
+        Record<string, unknown>
+      >,
       transportConfig,
     );
 
@@ -279,7 +293,7 @@ export function createScopedProvider<
     );
   }
 
-  ScopedProvider.displayName = 'ScopedRekuestProvider';
+  ScopedProvider.displayName = "ScopedRekuestProvider";
 
   return ScopedProvider;
 }

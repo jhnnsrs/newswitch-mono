@@ -1,22 +1,22 @@
-import type { ReactNode } from 'react';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { toast } from 'sonner';
-import { useAppStateStoreRegistry } from '@/lib/rekuest/app-state';
+import type { ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { toast } from "sonner";
+import { useAppStateStoreRegistry } from "@/lib/rekuest/app-state";
 import {
   AppStateContext,
   type AppStateContextValue,
-} from '@/lib/rekuest/app-state/app-state-context';
+} from "@/lib/rekuest/app-state/app-state-context";
 import {
   LockContext,
   type LockContextValue,
-} from '@/lib/rekuest/locks/lock-context';
-import { useLockStoreRegistry } from '@/lib/rekuest/locks/store';
+} from "@/lib/rekuest/locks/lock-context";
+import { useLockStoreRegistry } from "@/lib/rekuest/locks/store";
 import {
   getScopedStateKey,
   getStateDefinitionsRecord,
   resolveStateDefinition,
   type StateDefinition,
-} from '@/lib/rekuest/state';
+} from "@/lib/rekuest/state";
 import {
   buildLocalMaterializationPlan,
   DEFAULT_FORWARD_EVENT_WINDOW,
@@ -25,21 +25,21 @@ import {
   toNumericGlobalRevision,
   toSnapshotMap,
   type CheckoutConfig,
-} from '@/lib/rekuest/state/materialization';
+} from "@/lib/rekuest/state/materialization";
 import {
   StateContext,
   type CheckoutStateOptions,
   type StateContextValue,
-} from '@/lib/rekuest/state/state-context';
-import type { LatestPatchEntry } from '@/lib/rekuest/state/store';
-import { useGlobalStateStoreRegistry } from '@/lib/rekuest/state/store';
-import { TaskContext } from '@/lib/rekuest/task/task-context';
+} from "@/lib/rekuest/state/state-context";
+import type { LatestPatchEntry } from "@/lib/rekuest/state/store";
+import { useGlobalStateStoreRegistry } from "@/lib/rekuest/state/store";
+import { TaskContext } from "@/lib/rekuest/task/task-context";
 import {
   getRegistryTasks,
   selectTask,
   useTaskStoreRegistry,
-} from '@/lib/rekuest/task/store';
-import { useTransport } from '@/lib/rekuest/transport/transport-context';
+} from "@/lib/rekuest/task/store";
+import { useTransport } from "@/lib/rekuest/transport/transport-context";
 import {
   selectIsConnected,
   selectIsReconnecting,
@@ -47,7 +47,7 @@ import {
   selectRegistryVersion,
   useTransportStore,
   useTransportStoreApi,
-} from '@/lib/rekuest/transport/store';
+} from "@/lib/rekuest/transport/store";
 import type {
   AssignOptions,
   LockCollectionResponse,
@@ -64,13 +64,13 @@ import type {
   TransportMessageSubscription,
   TransportSocketConnectionState,
   WebSocketInitMessage,
-} from '@/lib/rekuest/transport/types';
+} from "@/lib/rekuest/transport/types";
 import {
   LockEventType,
   StateEventType,
   TaskEventType,
-} from '@/lib/rekuest/transport/types';
-import type { AppKey } from '@/lib/rekuest/types';
+} from "@/lib/rekuest/transport/types";
+import type { AppKey } from "@/lib/rekuest/types";
 
 export interface BundleProviderProps {
   children: ReactNode;
@@ -105,7 +105,7 @@ function validateSnapshots(
   appKey: string,
   globalRevisionId: string | number,
   snapshotMap: RevisedStatesSnapshotMap,
-  definitions: StateContextValue['definitions'],
+  definitions: StateContextValue["definitions"],
 ): RevisedStatesSnapshotMap {
   return Object.fromEntries(
     Object.entries(snapshotMap).map(([stateKey, revisedState]) => {
@@ -173,7 +173,7 @@ function normalizeTaskView(appKey: AppKey, taskView: TaskView): Task {
     action: taskView.action ?? taskView.action_key,
     args: {},
     reference: taskView.assignation,
-    status: taskView.running ? 'running' : 'submitted',
+    status: taskView.running ? "running" : "submitted",
     createdAt: now,
     updatedAt: now,
   };
@@ -200,7 +200,7 @@ function normalizeLockCollection(
 }
 
 function getAppStateKeys(
-  definitions: StateContextValue['definitions'],
+  definitions: StateContextValue["definitions"],
   appKey: AppKey,
 ): string[] {
   return Object.values(definitions)
@@ -221,12 +221,12 @@ function toLatestPatchEntriesFromEvents(
     return patchOperations.map((operation) => ({
       stateName: patchEvent.state_id,
       path:
-        typeof operation === 'object' &&
+        typeof operation === "object" &&
         operation !== null &&
-        'path' in operation &&
-        typeof operation.path === 'string'
+        "path" in operation &&
+        typeof operation.path === "string"
           ? operation.path
-          : '',
+          : "",
       revision: patchEvent.global_future_rev,
       ts: new Date(patchEvent.timepoint).getTime(),
     }));
@@ -331,11 +331,11 @@ export function BundleProvider({ children }: BundleProviderProps) {
               );
 
               switch (message.type) {
-                case 'INIT': {
+                case "INIT": {
                   const initMessage = message as WebSocketInitMessage;
                   const snapshotMap = validateSnapshots(
                     appKey,
-                    initMessage.states.current_global_revision ?? 'current',
+                    initMessage.states.current_global_revision ?? "current",
                     toSnapshotMapFromCollection(initMessage.states),
                     definitions,
                   );
@@ -386,14 +386,14 @@ export function BundleProvider({ children }: BundleProviderProps) {
                   return;
                 case TaskEventType.PROGRESS:
                   taskStore.updateTask(message.assignation, {
-                    status: 'running',
+                    status: "running",
                     progress: message.progress,
                     progressMessage: message.message,
                   });
                   return;
                 case TaskEventType.YIELD:
                   taskStore.updateTask(message.assignation, {
-                    status: 'running',
+                    status: "running",
                     result: message.returns,
                   });
                   return;
@@ -405,8 +405,8 @@ export function BundleProvider({ children }: BundleProviderProps) {
                     });
                   }
                   taskStore.updateTask(message.assignation, {
-                    status: 'completed',
-                    ...('returns' in message && message.returns !== undefined
+                    status: "completed",
+                    ...("returns" in message && message.returns !== undefined
                       ? { result: message.returns }
                       : {}),
                   });
@@ -414,42 +414,42 @@ export function BundleProvider({ children }: BundleProviderProps) {
                 }
                 case TaskEventType.ERROR:
                   taskStore.updateTask(message.assignation, {
-                    status: 'failed',
+                    status: "failed",
                     error: message.error,
                   });
                   return;
                 case TaskEventType.CRITICAL:
                   taskStore.updateTask(message.assignation, {
-                    status: 'failed',
+                    status: "failed",
                     error: message.error,
                   });
                   toast.error(`Critical error in task: ${message.error}`);
                   return;
                 case TaskEventType.PAUSED:
                   taskStore.updateTask(message.assignation, {
-                    status: 'paused',
+                    status: "paused",
                   });
                   return;
                 case TaskEventType.RESUMED:
                   taskStore.updateTask(message.assignation, {
-                    status: 'running',
+                    status: "running",
                   });
                   return;
                 case TaskEventType.CANCELLED:
                   taskStore.updateTask(message.assignation, {
-                    status: 'cancelled',
+                    status: "cancelled",
                   });
                   return;
                 case TaskEventType.INTERRUPTED:
                   taskStore.updateTask(message.assignation, {
-                    status: 'interrupted',
+                    status: "interrupted",
                   });
                   return;
                 case TaskEventType.LOG: {
                   const logMethod =
-                    message.level === 'ERROR' || message.level === 'CRITICAL'
+                    message.level === "ERROR" || message.level === "CRITICAL"
                       ? console.error
-                      : message.level === 'WARN'
+                      : message.level === "WARN"
                         ? console.warn
                         : console.log;
                   logMethod(
@@ -611,7 +611,7 @@ export function BundleProvider({ children }: BundleProviderProps) {
       const response = await transport.fetchAll(appKey, stateKeys);
       const snapshotMap = validateSnapshots(
         appKey,
-        response.current_global_revision ?? 'current',
+        response.current_global_revision ?? "current",
         toSnapshotMapFromCollection(response, stateKeys),
         definitions,
       );
@@ -809,7 +809,7 @@ export function BundleProvider({ children }: BundleProviderProps) {
     [globalStateStoreRegistry, transport],
   );
 
-  const refetchAll = useCallback<StateContextValue['refetchAll']>(
+  const refetchAll = useCallback<StateContextValue["refetchAll"]>(
     async (appKey, options) => {
       const availableDefinitions = Object.values(definitions).filter(
         (definition) => definition.appKey === appKey,
@@ -875,7 +875,7 @@ export function BundleProvider({ children }: BundleProviderProps) {
     [globalStateStoreRegistry, refetchState],
   );
 
-  const checkout = useCallback<StateContextValue['checkout']>(
+  const checkout = useCallback<StateContextValue["checkout"]>(
     async (appKey, globalRevisionId, options) => {
       const availableDefinitions = Object.values(definitions).filter(
         (definition) => definition.appKey === appKey,
@@ -994,7 +994,7 @@ export function BundleProvider({ children }: BundleProviderProps) {
     ],
   );
 
-  const assign: TaskContextValue['assign'] = useCallback(
+  const assign: TaskContextValue["assign"] = useCallback(
     async <TArgs, TReturn>(
       appKey: AppKey,
       actionName: string,
@@ -1004,7 +1004,7 @@ export function BundleProvider({ children }: BundleProviderProps) {
       const storeApi = taskStoreRegistry.getStoreApi(appKey);
       const reference = options?.reference || createReference();
 
-      storeApi.getState().addTask(actionName, reference, args, 'pending');
+      storeApi.getState().addTask(actionName, reference, args, "pending");
       if (options?.notify) {
         storeApi.getState().updateTask(reference, { notify: true });
       }
@@ -1021,9 +1021,9 @@ export function BundleProvider({ children }: BundleProviderProps) {
         return storeApi.getState().getTask<TArgs, TReturn>(reference)!;
       } catch (error: unknown) {
         const message =
-          error instanceof Error ? error.message : 'Unknown transport error';
+          error instanceof Error ? error.message : "Unknown transport error";
         storeApi.getState().updateTask(reference, {
-          status: 'failed',
+          status: "failed",
           error: message,
         });
         throw error;
@@ -1032,7 +1032,7 @@ export function BundleProvider({ children }: BundleProviderProps) {
     [createReference, taskStoreRegistry, transport],
   );
 
-  const getTask: TaskContextValue['getTask'] = useCallback(
+  const getTask: TaskContextValue["getTask"] = useCallback(
     async <TArgs = unknown, TReturn = unknown>(
       appKey: AppKey,
       taskId: string,
@@ -1070,7 +1070,7 @@ export function BundleProvider({ children }: BundleProviderProps) {
     async (appKey: AppKey, taskId: string) => {
       await updateTaskStatus(
         taskId,
-        'cancelled',
+        "cancelled",
         () => transport.cancelTaskRequest(appKey, taskId),
         appKey,
       );
@@ -1082,7 +1082,7 @@ export function BundleProvider({ children }: BundleProviderProps) {
     async (appKey: AppKey, taskId: string) => {
       await updateTaskStatus(
         taskId,
-        'paused',
+        "paused",
         () => transport.pauseTaskRequest(appKey, taskId),
         appKey,
       );
@@ -1094,7 +1094,7 @@ export function BundleProvider({ children }: BundleProviderProps) {
     async (appKey: AppKey, taskId: string) => {
       await updateTaskStatus(
         taskId,
-        'running',
+        "running",
         () => transport.unpauseTaskRequest(appKey, taskId),
         appKey,
       );
@@ -1106,7 +1106,7 @@ export function BundleProvider({ children }: BundleProviderProps) {
     async (appKey: AppKey, taskId: string) => {
       await updateTaskStatus(
         taskId,
-        'running',
+        "running",
         () => transport.stepTaskRequest(appKey, taskId),
         appKey,
       );
@@ -1134,7 +1134,7 @@ export function BundleProvider({ children }: BundleProviderProps) {
     [taskStoreRegistry],
   );
 
-  const waitForTask: TaskContextValue['waitForTask'] = useCallback(
+  const waitForTask: TaskContextValue["waitForTask"] = useCallback(
     <TArgs = unknown, TReturn = unknown>(
       appKey: AppKey,
       taskId: string,
@@ -1144,17 +1144,17 @@ export function BundleProvider({ children }: BundleProviderProps) {
         .getState()
         .getTask<TArgs, TReturn>(taskId);
 
-      if (cachedTask?.status === 'completed') {
+      if (cachedTask?.status === "completed") {
         return Promise.resolve(cachedTask);
       }
 
-      if (cachedTask?.status === 'failed') {
-        return Promise.reject(new Error(cachedTask.error || 'Task failed'));
+      if (cachedTask?.status === "failed") {
+        return Promise.reject(new Error(cachedTask.error || "Task failed"));
       }
 
       if (
-        cachedTask?.status === 'cancelled' ||
-        cachedTask?.status === 'interrupted'
+        cachedTask?.status === "cancelled" ||
+        cachedTask?.status === "interrupted"
       ) {
         return Promise.reject(new Error(`Task was ${cachedTask.status}`));
       }
@@ -1163,21 +1163,21 @@ export function BundleProvider({ children }: BundleProviderProps) {
         const unsubscribe = subscribeToTask(taskId, appKey, (task) => {
           const typedTask = task as Task<TArgs, TReturn>;
 
-          if (typedTask.status === 'completed') {
+          if (typedTask.status === "completed") {
             unsubscribe();
             resolve(typedTask);
             return;
           }
 
-          if (typedTask.status === 'failed') {
+          if (typedTask.status === "failed") {
             unsubscribe();
-            reject(new Error(typedTask.error || 'Task failed'));
+            reject(new Error(typedTask.error || "Task failed"));
             return;
           }
 
           if (
-            typedTask.status === 'cancelled' ||
-            typedTask.status === 'interrupted'
+            typedTask.status === "cancelled" ||
+            typedTask.status === "interrupted"
           ) {
             unsubscribe();
             reject(new Error(`Task was ${typedTask.status}`));
@@ -1188,14 +1188,14 @@ export function BundleProvider({ children }: BundleProviderProps) {
     [subscribeToTask, taskStoreRegistry],
   );
 
-  const appStateGoLive = useCallback<AppStateContextValue['goLive']>(
+  const appStateGoLive = useCallback<AppStateContextValue["goLive"]>(
     async (appKey) => {
       await startLive(appKey);
     },
     [startLive],
   );
 
-  const appStateStopLive = useCallback<AppStateContextValue['stopLive']>(
+  const appStateStopLive = useCallback<AppStateContextValue["stopLive"]>(
     async (appKey) => {
       await stopAllLiveSync(appKey);
     },

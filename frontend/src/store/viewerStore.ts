@@ -8,14 +8,13 @@ import { createScopedStoreHooks } from "@/lib/rekuest/createScopedStore";
 
 export type StoreBuilder = (frame: Frame) => ZarrStore;
 
-
 interface ViewerState {
   // We store the combined projection + view matrix
   zStart: number | null;
   zEnd: number | null;
   tStart: Date | null;
   tEnd: Date | null;
-  debug: boolean; 
+  debug: boolean;
   storeBuilder: StoreBuilder;
 
   setZRange: (start: number | null, end: number | null) => void;
@@ -23,15 +22,14 @@ interface ViewerState {
   setDebug: (debug: boolean) => void;
 }
 
-
 export const localBuilder = (frame: Frame) => {
   return new TestNoiseZarrStore(frame.id);
-}
+};
 
 export const fetchBuilder = (frame: Frame) => {
   const url = `${BACKEND_API}/cache/${frame.id}`;
   return new CachedFetchStore(url);
-}
+};
 
 export const createViewerStore = () =>
   createStore<ViewerState>((set) => ({

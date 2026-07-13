@@ -3,15 +3,15 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
+} from "@/components/ui/tooltip";
 import {
   useSwitchObjective,
   useToggleObjective,
-} from '@/apps/default/hooks/actions';
-import { useObjectiveState } from '@/apps/default/hooks/states';
-import { cn } from '@/lib/utils';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
+} from "@/apps/default/hooks/actions";
+import { useObjectiveState } from "@/apps/default/hooks/states";
+import { cn } from "@/lib/utils";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useState } from "react";
 
 export function ObjectiveControl() {
   const { data: objectiveState, loading: stateLoading } = useObjectiveState({
@@ -136,13 +136,13 @@ export function ObjectiveControl() {
                       onClick={() => handleSelectObjective(lens.slot)}
                       disabled={isLoading}
                       className={cn(
-                        'relative flex min-w-[4rem] max-w-[5.5rem] flex-col items-center justify-center overflow-hidden rounded-lg border p-3 text-center transition-all',
+                        "relative flex min-w-[4rem] max-w-[5.5rem] flex-col items-center justify-center overflow-hidden rounded-lg border p-3 text-center transition-all",
                         isActive
-                          ? 'bg-primary text-primary-foreground border-primary'
+                          ? "bg-primary text-primary-foreground border-primary"
                           : isSelected
-                            ? 'bg-secondary border-secondary'
-                            : 'bg-muted/30 border-transparent hover:bg-muted/50',
-                        isLoading && 'opacity-50 cursor-not-allowed',
+                            ? "bg-secondary border-secondary"
+                            : "bg-muted/30 border-transparent hover:bg-muted/50",
+                        isLoading && "opacity-50 cursor-not-allowed",
                       )}
                     >
                       {isActive && (
@@ -152,7 +152,7 @@ export function ObjectiveControl() {
                         {lens.magnification}×
                       </span>
                       <span className="text-xs opacity-80 truncate max-w-full">
-                        {lens.name.split(' ')[0]}
+                        {lens.name.split(" ")[0]}
                       </span>
                     </button>
                   </TooltipTrigger>

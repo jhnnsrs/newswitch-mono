@@ -1,9 +1,9 @@
-import { createContext, useContext } from 'react';
-import { useStore } from 'zustand';
-import { createStore, type StateCreator, type StoreApi } from 'zustand/vanilla';
-import { devtools, subscribeWithSelector } from 'zustand/middleware';
-import { immer } from 'zustand/middleware/immer';
-import type { TransportSocketConnectionState } from '@/lib/rekuest/transport/types';
+import { createContext, useContext } from "react";
+import { useStore } from "zustand";
+import { createStore, type StateCreator, type StoreApi } from "zustand/vanilla";
+import { devtools, subscribeWithSelector } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
+import type { TransportSocketConnectionState } from "@/lib/rekuest/transport/types";
 
 export interface AppStateStore {
   isLive: boolean;
@@ -30,12 +30,12 @@ const defaultConnectionState: TransportSocketConnectionState = {
 
 export const createAppStateStore = ({
   debug = false,
-  devtoolsName = 'RekuestAppStateStore',
+  devtoolsName = "RekuestAppStateStore",
 }: AppStateStoreOptions = {}) => {
   const initializer: StateCreator<
     AppStateStore,
     [],
-    [['zustand/subscribeWithSelector', never], ['zustand/immer', never]]
+    [["zustand/subscribeWithSelector", never], ["zustand/immer", never]]
   > = subscribeWithSelector(
     immer((set) => ({
       isLive: false,
@@ -66,7 +66,9 @@ export const createAppStateStore = ({
   );
 
   if (debug) {
-    return createStore<AppStateStore>()(devtools(initializer, { name: devtoolsName }));
+    return createStore<AppStateStore>()(
+      devtools(initializer, { name: devtoolsName }),
+    );
   }
 
   return createStore<AppStateStore>()(initializer);
@@ -106,13 +108,15 @@ export const createAppStateStoreRegistry = ({
   };
 };
 
-export const AppStateStoreContext = createContext<AppStateStoreRegistry | null>(null);
+export const AppStateStoreContext = createContext<AppStateStoreRegistry | null>(
+  null,
+);
 
 export const useAppStateStoreRegistry = (): AppStateStoreRegistry => {
   const registry = useContext(AppStateStoreContext);
 
   if (!registry) {
-    throw new Error('Missing AppStateStoreProvider');
+    throw new Error("Missing AppStateStoreProvider");
   }
 
   return registry;
@@ -132,6 +136,9 @@ export function useAppStateStore<TSelected>(
 export const selectAppIsLive = (store: AppStateStore) => store.isLive;
 export const selectAppIsReplayMode = (store: AppStateStore) => !store.isLive;
 export const selectAppIsConnected = (store: AppStateStore) => store.isConnected;
-export const selectAppIsReconnecting = (store: AppStateStore) => store.isReconnecting;
-export const selectAppIsUnconnectable = (store: AppStateStore) => store.isUnconnectable;
-export const selectAppReconnectAttempt = (store: AppStateStore) => store.reconnectAttempt;
+export const selectAppIsReconnecting = (store: AppStateStore) =>
+  store.isReconnecting;
+export const selectAppIsUnconnectable = (store: AppStateStore) =>
+  store.isUnconnectable;
+export const selectAppReconnectAttempt = (store: AppStateStore) =>
+  store.reconnectAttempt;

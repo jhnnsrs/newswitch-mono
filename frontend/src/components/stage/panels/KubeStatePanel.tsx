@@ -1,17 +1,17 @@
-import { Card } from '@/components/ui/card';
-import { useKubeStateStore } from '@/store/kubeStateStore';
-import { useViewStore } from '@/store/viewStore';
-import { useMemo } from 'react';
-import * as THREE from 'three';
-import { DetectorKubePanel } from './kubes/DetectorKubePanel';
-import { DichroicKubePanel } from './kubes/DichroicKubePanel';
-import { FilterBankKubePanel } from './kubes/FilterBankKubePanel';
-import { FilterKubePanel } from './kubes/FilterKubePanel';
-import { GenericKubePanel } from './kubes/GenericKubePanel';
-import { IlluminationKubePanel } from './kubes/IlluminationKubePanel';
-import { ObjectiveKubePanel } from './kubes/ObjectiveKubePanel';
-import { StageKubePanel } from './kubes/StageKubePanel';
-import { useModeStore } from '@/store/modeStore';
+import { Card } from "@/components/ui/card";
+import { useKubeStateStore } from "@/store/kubeStateStore";
+import { useViewStore } from "@/store/viewStore";
+import { useMemo } from "react";
+import * as THREE from "three";
+import { DetectorKubePanel } from "./kubes/DetectorKubePanel";
+import { DichroicKubePanel } from "./kubes/DichroicKubePanel";
+import { FilterBankKubePanel } from "./kubes/FilterBankKubePanel";
+import { FilterKubePanel } from "./kubes/FilterKubePanel";
+import { GenericKubePanel } from "./kubes/GenericKubePanel";
+import { IlluminationKubePanel } from "./kubes/IlluminationKubePanel";
+import { ObjectiveKubePanel } from "./kubes/ObjectiveKubePanel";
+import { StageKubePanel } from "./kubes/StageKubePanel";
+import { useModeStore } from "@/store/modeStore";
 
 export const KubeStatePanel = () => {
   // 1. Get Domain Data
@@ -23,7 +23,7 @@ export const KubeStatePanel = () => {
   const viewportSize = useViewStore((s) => s.viewportSize);
 
   const hasAffineMatrix =
-    !!selectedKubeState && 'affine_matrix' in selectedKubeState;
+    !!selectedKubeState && "affine_matrix" in selectedKubeState;
 
   // 3. Calculate 2D Screen Position
   const screenPos = useMemo(() => {
@@ -78,26 +78,26 @@ export const KubeStatePanel = () => {
   }, [selectedKubeState, viewProjectionMatrix, viewportSize, hasAffineMatrix]);
 
   // Early returns if data is missing or out of bounds
-  if (displayMode !== '3D') return null;
+  if (displayMode !== "3D") return null;
   if (!selectedKubeState || !screenPos) return null;
 
   const panel = (() => {
     switch (selectedKubeState.__identifier) {
-      case 'objective_kube_state':
+      case "objective_kube_state":
         return <ObjectiveKubePanel data={selectedKubeState} />;
-      case 'detector_kube_state':
+      case "detector_kube_state":
         return <DetectorKubePanel data={selectedKubeState} />;
-      case 'filter_kube_state':
+      case "filter_kube_state":
         return <FilterKubePanel data={selectedKubeState} />;
-      case 'illumination_kube_state':
+      case "illumination_kube_state":
         return <IlluminationKubePanel data={selectedKubeState} />;
-      case 'stage_kube_state':
+      case "stage_kube_state":
         return <StageKubePanel data={selectedKubeState} />;
-      case 'dichroic_kube_state':
+      case "dichroic_kube_state":
         return <DichroicKubePanel data={selectedKubeState} />;
-      case 'filter_bank_kube_state':
+      case "filter_bank_kube_state":
         return <FilterBankKubePanel data={selectedKubeState} />;
-      case 'generic_kube_state':
+      case "generic_kube_state":
         return <GenericKubePanel data={selectedKubeState} />;
       default:
         return null;

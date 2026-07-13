@@ -42,7 +42,6 @@ export function ActionButton<TArgs, TReturn>({
   disabled,
   ...props
 }: ActionButtonProps<TArgs, TReturn>) {
-
   const actionApi = useAction(action);
 
   const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {

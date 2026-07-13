@@ -1,4 +1,7 @@
-import { LightPathSchema, useLightPathState } from "@/apps/default/hooks/states";
+import {
+  LightPathSchema,
+  useLightPathState,
+} from "@/apps/default/hooks/states";
 import { useKubeStore } from "@/store/kubeStore";
 import { useModeStore } from "@/store/modeStore";
 import { Suspense, useEffect, useRef } from "react";
@@ -80,7 +83,7 @@ export const InvertedHullOutline = ({
 };
 
 // --- Main Light Path Plane Component ---
-export const LightPathPlane = ({ path }: { path:  LightPath }) => {
+export const LightPathPlane = ({ path }: { path: LightPath }) => {
   const selectedKube = useKubeStore((s) => s.selectedKube);
   const setSelectedKube = useKubeStore((s) => s.setSelectedKube);
 
@@ -88,8 +91,7 @@ export const LightPathPlane = ({ path }: { path:  LightPath }) => {
     <>
       <LightPathEdges path={path} />
       {path.kubes.map((kube) => {
-        const isSelected =
-          selectedKube?.kube_id === kube.kube_id 
+        const isSelected = selectedKube?.kube_id === kube.kube_id;
 
         return (
           <Suspense key={kube.kube_id} fallback={<></>}>
@@ -109,7 +111,7 @@ export const LightPathPlane = ({ path }: { path:  LightPath }) => {
                 {(() => {
                   switch (kube.__identifier) {
                     case "objective_turret_kube":
-                      return <ObjectiveTurretKubePlane data={kube} />; 
+                      return <ObjectiveTurretKubePlane data={kube} />;
                     case "objective_kube":
                       return <ObjectiveKubePlane data={kube} />;
                     case "detector_kube":
@@ -141,7 +143,7 @@ export const LightPathPlane = ({ path }: { path:  LightPath }) => {
 
 // --- Scene View Toggle ---
 export const CurrentLightPathPlane = () => {
-  const {data: lightpath} = useLightPathState();
+  const { data: lightpath } = useLightPathState();
   const currentMode = useModeStore((state) => state.interactionMode);
   const displayMode = useModeStore((state) => state.displayMode);
 

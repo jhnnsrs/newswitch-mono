@@ -1,15 +1,15 @@
-import type { ReactNode } from 'react';
-import { useState } from 'react';
-import type { Vector3 } from 'three';
+import type { ReactNode } from "react";
+import { useState } from "react";
+import type { Vector3 } from "three";
 import {
   PanelContext,
   type PanelContextType,
   type RegisteredPanels,
-} from './panelContext';
+} from "./panelContext";
 
 export const PanelProvider = ({ children }: { children: ReactNode }) => {
   const [activePanel, setActivePanel] =
-    useState<PanelContextType['activePanel']>(null);
+    useState<PanelContextType["activePanel"]>(null);
 
   const openPanel = (options: {
     screenPos: { x: number; y: number };

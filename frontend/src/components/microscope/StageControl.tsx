@@ -8,7 +8,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { MoveHomeDefinition, MoveStageDefinition } from "@/apps/default/hooks/actions";
+import {
+  MoveHomeDefinition,
+  MoveStageDefinition,
+} from "@/apps/default/hooks/actions";
 import { useStagePositionLock } from "@/apps/default/hooks/locks";
 import { useStageState } from "@/apps/default/hooks/states";
 import { cn } from "@/lib/utils";

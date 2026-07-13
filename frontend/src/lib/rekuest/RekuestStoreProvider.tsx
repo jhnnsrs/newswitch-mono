@@ -1,25 +1,25 @@
-import type { ReactNode } from 'react';
-import { useMemo } from 'react';
+import type { ReactNode } from "react";
+import { useMemo } from "react";
 import {
   AppStateStoreContext,
   createAppStateStoreRegistry,
-} from '@/lib/rekuest/app-state';
+} from "@/lib/rekuest/app-state";
 import {
   createLockStoreRegistry,
   LockStoreContext,
-} from '@/lib/rekuest/locks/store';
+} from "@/lib/rekuest/locks/store";
 import {
   createGlobalStateStoreRegistry,
   GlobalStateStoreContext,
-} from '@/lib/rekuest/state/store';
+} from "@/lib/rekuest/state/store";
 import {
   createTaskStoreRegistry,
   TaskStoreContext,
-} from '@/lib/rekuest/task/store';
+} from "@/lib/rekuest/task/store";
 import {
   createTransportStore,
   TransportStoreContext,
-} from '@/lib/rekuest/transport/store';
+} from "@/lib/rekuest/transport/store";
 
 export interface RekuestStoreBundle {
   appStateStore: ReturnType<typeof createAppStateStoreRegistry>;
@@ -46,7 +46,10 @@ const createRekuestStoreBundle = (
 
   return {
     appStateStore: createAppStateStoreRegistry({ debug }),
-    globalStateStore: createGlobalStateStoreRegistry({ debug, latestPatchesBufferSize }),
+    globalStateStore: createGlobalStateStoreRegistry({
+      debug,
+      latestPatchesBufferSize,
+    }),
     taskStore: createTaskStoreRegistry(transportStore, { debug }),
     transportStore,
     lockStore: createLockStoreRegistry({ debug }),
@@ -58,7 +61,7 @@ const getScopedBundle = (
   debug = false,
   latestPatchesBufferSize = 100,
 ): RekuestStoreBundle => {
-  const bundleKey = `${scope}::debug-${debug ? 'on' : 'off'}::patches-${latestPatchesBufferSize}`;
+  const bundleKey = `${scope}::debug-${debug ? "on" : "off"}::patches-${latestPatchesBufferSize}`;
   const existingBundle = scopedBundles.get(bundleKey);
 
   if (existingBundle) {
@@ -72,7 +75,7 @@ const getScopedBundle = (
 
 export function RekuestStoreProvider({
   children,
-  scope = 'default',
+  scope = "default",
   debug = false,
   latestPatchesBufferSize = 100,
 }: RekuestStoreProviderProps) {

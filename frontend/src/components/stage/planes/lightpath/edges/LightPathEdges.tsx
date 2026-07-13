@@ -1,9 +1,9 @@
-import { useMemo } from 'react';
-import * as THREE from 'three';
-import type { LightPath } from '../LightPathPlane';
+import { useMemo } from "react";
+import * as THREE from "three";
+import type { LightPath } from "../LightPathPlane";
 
 type KubeWithAffine = Extract<
-  LightPath['kubes'][number],
+  LightPath["kubes"][number],
   { affine_matrix: number[][] }
 >;
 
@@ -45,9 +45,9 @@ const normalizeIntensity = (value: number | null | undefined): number => {
 };
 
 const hasAffineMatrix = (
-  kube: LightPath['kubes'][number],
+  kube: LightPath["kubes"][number],
 ): kube is KubeWithAffine => {
-  return 'affine_matrix' in kube;
+  return "affine_matrix" in kube;
 };
 
 export const LightPathEdges = ({ path }: { path: LightPath }) => {

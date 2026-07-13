@@ -1,18 +1,18 @@
-import type { AppKey } from '@/lib/rekuest/types';
+import type { AppKey } from "@/lib/rekuest/types";
 import type {
   FromAgentMessage,
   TransportConfig,
   TransportMessageSubscription,
   TransportSocketConnectionState,
   WebSocketSubscriptionInit,
-} from '@/lib/rekuest/transport/types';
+} from "@/lib/rekuest/transport/types";
 
 export type TransportManagerEndpoints = {
   wsUrl: string;
 };
 
 type SocketState = TransportSocketConnectionState;
-type ReconnectConfig = Required<NonNullable<TransportConfig['reconnect']>>;
+type ReconnectConfig = Required<NonNullable<TransportConfig["reconnect"]>>;
 
 type AppChannelState = {
   ws: WebSocket | null;
@@ -54,11 +54,14 @@ export class TransportSubscriptionManager {
     Set<(state: SocketState) => void>
   >();
 
-  private readonly pingIntervals = new Map<string, ReturnType<typeof setInterval>>();
+  private readonly pingIntervals = new Map<
+    string,
+    ReturnType<typeof setInterval>
+  >();
 
-  private readonly getEndpoints: TransportSubscriptionManagerOptions['getEndpoints'];
+  private readonly getEndpoints: TransportSubscriptionManagerOptions["getEndpoints"];
 
-  private readonly getSubscriptionInit: TransportSubscriptionManagerOptions['getSubscriptionInit'];
+  private readonly getSubscriptionInit: TransportSubscriptionManagerOptions["getSubscriptionInit"];
 
   private readonly reconnect: ReconnectConfig;
 
@@ -201,7 +204,8 @@ export class TransportSubscriptionManager {
     }
 
     const aggregateState =
-      this.channelStates.get(appKey)?.connectionState ?? createInitialConnectionState();
+      this.channelStates.get(appKey)?.connectionState ??
+      createInitialConnectionState();
 
     listeners.forEach((listener) => listener(aggregateState));
   }
@@ -231,10 +235,10 @@ export class TransportSubscriptionManager {
     state.ws.onerror = null;
 
     if (
-      state.ws.readyState === WebSocket.OPEN
-      || state.ws.readyState === WebSocket.CONNECTING
+      state.ws.readyState === WebSocket.OPEN ||
+      state.ws.readyState === WebSocket.CONNECTING
     ) {
-      state.ws.close(1000, 'Client cleanup');
+      state.ws.close(1000, "Client cleanup");
     }
 
     state.ws = null;
@@ -262,8 +266,8 @@ export class TransportSubscriptionManager {
     }
 
     const delay = Math.min(
-      this.reconnect.initialDelay
-        * Math.pow(this.reconnect.backoffMultiplier, nextAttempt - 1),
+      this.reconnect.initialDelay *
+        Math.pow(this.reconnect.backoffMultiplier, nextAttempt - 1),
       this.reconnect.maxDelay,
     );
 
@@ -284,8 +288,8 @@ export class TransportSubscriptionManager {
     }
 
     if (
-      state.ws?.readyState === WebSocket.OPEN
-      || state.ws?.readyState === WebSocket.CONNECTING
+      state.ws?.readyState === WebSocket.OPEN ||
+      state.ws?.readyState === WebSocket.CONNECTING
     ) {
       return;
     }
@@ -312,7 +316,7 @@ export class TransportSubscriptionManager {
         appKey,
         setInterval(() => {
           if (ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ type: 'ping' }));
+            ws.send(JSON.stringify({ type: "ping" }));
           }
         }, this.pingInterval),
       );
@@ -320,7 +324,10 @@ export class TransportSubscriptionManager {
 
     ws.onmessage = (event) => {
       const message = JSON.parse(event.data) as FromAgentMessage;
-      console.log(`[TransportSubscriptionManager] Received message for ${appKey}:`, message);
+      console.log(
+        `[TransportSubscriptionManager] Received message for ${appKey}:`,
+        message,
+      );
       state.listeners.forEach((listener) => {
         listener(message);
       });

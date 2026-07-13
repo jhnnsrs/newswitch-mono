@@ -53,9 +53,7 @@ export const Expanse = () => {
           {/* The Live Video Feed */}
           <LivesPlane />
 
-          <CurrentLightPathPlane/>
-
-          
+          <CurrentLightPathPlane />
 
           <ImagesPlane />
 

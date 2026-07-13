@@ -1,24 +1,18 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect } from "react";
 import {
   selectError,
   selectLoading,
   selectRevision,
   selectState,
   useGlobalStateStore,
-} from './store';
-import { useStateContext } from '@/lib/rekuest/state/state-context';
-import type {
-  StateDefinition,
-  UseStateOptions,
-  UseStateResult,
-} from './types';
+} from "./store";
+import { useStateContext } from "@/lib/rekuest/state/state-context";
+import type { StateDefinition, UseStateOptions, UseStateResult } from "./types";
 
 export const buildUseState = <T extends Record<string, unknown>>(
   definition: StateDefinition<T>,
 ) => {
-  return <U = T,>(
-    options: UseStateOptions<T, U> = {},
-  ): UseStateResult<U> => {
+  return <U = T>(options: UseStateOptions<T, U> = {}): UseStateResult<U> => {
     return useState<T, U>(definition, options);
   };
 };
@@ -37,7 +31,8 @@ export const useState = <
 
   const appKey = definition.appKey;
 
-  const rawData = useGlobalStateStore(appKey, selectState<T>(definition.key)) ?? null;
+  const rawData =
+    useGlobalStateStore(appKey, selectState<T>(definition.key)) ?? null;
   const revision = useGlobalStateStore(appKey, selectRevision(definition.key));
 
   const data =

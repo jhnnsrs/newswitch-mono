@@ -1,4 +1,12 @@
 {
-  "singleQuote": true,
-  "trailingComma": "all"
+  "overrides": [
+    {
+      "comment": "Generated code + the generator itself are single-quoted. This MUST match what plugins/generate-app.ts emits, or the formatter and the generator rewrite each other forever and the codegen drift check never goes clean. Hand-written src/ keeps prettier's defaults (double quotes), which is the existing style.",
+      "files": ["src/apps/**", "plugins/**"],
+      "options": {
+        "singleQuote": true,
+        "trailingComma": "all"
+      }
+    }
+  ]
 }

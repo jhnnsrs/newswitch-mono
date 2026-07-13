@@ -1,4 +1,3 @@
-
 import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
 import { useCancelTask } from "@/apps/default/hooks/useCancelTask";
@@ -9,7 +8,6 @@ import { selectTask } from "@/lib/rekuest/task/store";
 
 export const ProgressDisplay = (props: {
   activeTaskId: string | null | undefined;
-
 }) => {
   const activeTaskId = props.activeTaskId;
 

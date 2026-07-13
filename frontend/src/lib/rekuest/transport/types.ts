@@ -1,14 +1,18 @@
-import type { AppDefinition, AppKey, AppsDefinition } from '@/lib/rekuest/types';
+import type {
+  AppDefinition,
+  AppKey,
+  AppsDefinition,
+} from "@/lib/rekuest/types";
 
 export type TaskStatus =
-  | 'pending'
-  | 'running'
-  | 'completed'
-  | 'submitted'
-  | 'failed'
-  | 'cancelled'
-  | 'paused'
-  | 'interrupted';
+  | "pending"
+  | "running"
+  | "completed"
+  | "submitted"
+  | "failed"
+  | "cancelled"
+  | "paused"
+  | "interrupted";
 
 export interface Task<TArgs = unknown, TReturn = unknown> {
   id: string;
@@ -195,39 +199,40 @@ export interface LockCollectionResponse {
   locks: Record<string, LockView>;
 }
 
-export type LogLevel = 'DEBUG' | 'INFO' | 'ERROR' | 'WARN' | 'CRITICAL';
+export type LogLevel = "DEBUG" | "INFO" | "ERROR" | "WARN" | "CRITICAL";
 
 export const TaskEventType = {
-  TASK_INIT: 'TASK_INIT',
-  REGISTER: 'REGISTER',
-  LOG: 'LOG',
-  PROGRESS: 'PROGRESS',
-  DONE: 'DONE',
-  YIELD: 'YIELD',
-  ERROR: 'ERROR',
-  PAUSED: 'PAUSED',
-  CRITICAL: 'CRITICAL',
-  STEPPED: 'STEPPED',
-  RESUMED: 'RESUMED',
-  CANCELLED: 'CANCELLED',
-  APP_CANCELLED: 'APP_CANCELLED',
-  ASSIGNED: 'ASSIGNED',
-  INTERRUPTED: 'INTERRUPTED',
-  HEARTBEAT_ANSWER: 'HEARTBEAT_ANSWER',
+  TASK_INIT: "TASK_INIT",
+  REGISTER: "REGISTER",
+  LOG: "LOG",
+  PROGRESS: "PROGRESS",
+  DONE: "DONE",
+  YIELD: "YIELD",
+  ERROR: "ERROR",
+  PAUSED: "PAUSED",
+  CRITICAL: "CRITICAL",
+  STEPPED: "STEPPED",
+  RESUMED: "RESUMED",
+  CANCELLED: "CANCELLED",
+  APP_CANCELLED: "APP_CANCELLED",
+  ASSIGNED: "ASSIGNED",
+  INTERRUPTED: "INTERRUPTED",
+  HEARTBEAT_ANSWER: "HEARTBEAT_ANSWER",
 } as const;
 
 export type TaskEventType = (typeof TaskEventType)[keyof typeof TaskEventType];
 
 export const StateEventType = {
-  STATE_UPDATE: 'STATE_UPDATE',
-  STATE_PATCH: 'STATE_PATCH',
+  STATE_UPDATE: "STATE_UPDATE",
+  STATE_PATCH: "STATE_PATCH",
 } as const;
 
-export type StateEventType = (typeof StateEventType)[keyof typeof StateEventType];
+export type StateEventType =
+  (typeof StateEventType)[keyof typeof StateEventType];
 
 export const LockEventType = {
-  LOCK: 'LOCK',
-  UNLOCK: 'UNLOCK',
+  LOCK: "LOCK",
+  UNLOCK: "UNLOCK",
 } as const;
 
 export type LockEventType = (typeof LockEventType)[keyof typeof LockEventType];
@@ -236,23 +241,23 @@ export const FromAgentMessageType = TaskEventType;
 export type FromAgentMessageType = TaskEventType;
 
 export const ToAgentMessageType = {
-  ASSIGN: 'ASSIGN',
-  CANCEL: 'CANCEL',
-  STEP: 'STEP',
-  COLLECT: 'COLLECT',
-  RESUME: 'RESUME',
-  PAUSE: 'PAUSE',
-  INTERRUPT: 'INTERRUPT',
-  PROVIDE: 'PROVIDE',
-  UNPROVIDE: 'UNPROVIDE',
-  INIT: 'INIT',
-  HEARTBEAT: 'HEARTBEAT',
-  BOUNCE: 'BOUNCE',
-  KICK: 'KICK',
-  PROTOCOL_ERROR: 'PROTOCOL_ERROR',
-  LISTEN_STATES: 'LISTEN_STATES',
-  LISTEN_LOCKS: 'LISTEN_LOCKS',
-  LISTEN_TASKS: 'LISTEN_TASKS',
+  ASSIGN: "ASSIGN",
+  CANCEL: "CANCEL",
+  STEP: "STEP",
+  COLLECT: "COLLECT",
+  RESUME: "RESUME",
+  PAUSE: "PAUSE",
+  INTERRUPT: "INTERRUPT",
+  PROVIDE: "PROVIDE",
+  UNPROVIDE: "UNPROVIDE",
+  INIT: "INIT",
+  HEARTBEAT: "HEARTBEAT",
+  BOUNCE: "BOUNCE",
+  KICK: "KICK",
+  PROTOCOL_ERROR: "PROTOCOL_ERROR",
+  LISTEN_STATES: "LISTEN_STATES",
+  LISTEN_LOCKS: "LISTEN_LOCKS",
+  LISTEN_TASKS: "LISTEN_TASKS",
 } as const;
 
 export type ToAgentMessageType =
@@ -342,7 +347,7 @@ export interface TaskInitMessage extends BaseMessage {
 }
 
 export interface WebSocketInitMessage extends BaseMessage {
-  type: 'INIT';
+  type: "INIT";
   tasks: TaskCollectionResponse;
   states: StateCollectionResponse;
   locks: LockCollectionResponse;
@@ -355,7 +360,7 @@ export interface StateUpdateEvent {
 }
 
 export interface EnvelopPatch {
-  op: 'add' | 'remove' | 'replace' | 'move' | 'copy' | 'test';
+  op: "add" | "remove" | "replace" | "move" | "copy" | "test";
   path: string;
   value?: unknown;
   old_value?: string;
@@ -375,7 +380,7 @@ export interface StatePatchEvent {
   global_rev: number;
   state_name: string;
   ts: number;
-  op: 'add' | 'remove' | 'replace' | 'move' | 'copy';
+  op: "add" | "remove" | "replace" | "move" | "copy";
   path: string;
   value?: unknown;
   old_value?: string;
@@ -570,7 +575,9 @@ export interface TransportConfig {
   apiEndpoint: string;
   wsEndpoint?: string;
   instanceId: string;
-  appStateUpdateIntervals?: Partial<Record<string, Partial<Record<string, number>>>>;
+  appStateUpdateIntervals?: Partial<
+    Record<string, Partial<Record<string, number>>>
+  >;
   reconnect?: {
     maxAttempts?: number;
     initialDelay?: number;
@@ -595,7 +602,7 @@ export interface TransportContextValue {
   wsUrl: string;
   instanceId: string;
   pingInterval: number;
-  reconnect: Required<NonNullable<TransportConfig['reconnect']>>;
+  reconnect: Required<NonNullable<TransportConfig["reconnect"]>>;
   assignAction: <TArgs>(
     appKey: AppKey,
     actionName: string,
@@ -615,8 +622,14 @@ export interface TransportContextValue {
   pauseTaskRequest: (appKey: AppKey, taskId: string) => Promise<void>;
   unpauseTaskRequest: (appKey: AppKey, taskId: string) => Promise<void>;
   stepTaskRequest: (appKey: AppKey, taskId: string) => Promise<void>;
-  fetchState: <T = unknown>(appKey: AppKey, stateName: string) => Promise<StateView<T>>;
-  fetchAll: <T = unknown>(appKey: AppKey, stateKeys?: string[]) => Promise<StateCollectionResponse<T>>;
+  fetchState: <T = unknown>(
+    appKey: AppKey,
+    stateName: string,
+  ) => Promise<StateView<T>>;
+  fetchAll: <T = unknown>(
+    appKey: AppKey,
+    stateKeys?: string[],
+  ) => Promise<StateCollectionResponse<T>>;
   fetchStateCheckout: (
     appKey: AppKey,
     globalRevisionId: string | number,

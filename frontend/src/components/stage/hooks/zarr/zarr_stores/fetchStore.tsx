@@ -1,9 +1,9 @@
 // Must stay a type-only import: `import { type X }` keeps the module side-effect under
 // verbatimModuleSyntax, which pulls @zarrita/storage's Node-only FileSystemStore (fs.js)
 // into the browser bundle and breaks the build.
-import type { AbsolutePath } from '@zarrita/storage';
-import { FetchStore } from 'zarrita';
-import { LRUCache } from '../caches/in_memory_lru';
+import type { AbsolutePath } from "@zarrita/storage";
+import { FetchStore } from "zarrita";
+import { LRUCache } from "../caches/in_memory_lru";
 
 class AsyncLockManager<T> {
   private locks = new Map<string, Promise<T>>();
@@ -26,7 +26,7 @@ export class HTTPError extends Error {
   __zarr__: string;
   constructor(code: string | undefined) {
     super(code);
-    this.__zarr__ = 'HTTPError';
+    this.__zarr__ = "HTTPError";
     Object.setPrototypeOf(this, HTTPError.prototype);
   }
 }
@@ -36,7 +36,7 @@ export class KeyError extends Error {
 
   constructor(key: string | undefined) {
     super(`key ${key} not present`);
-    this.__zarr__ = 'KeyError';
+    this.__zarr__ = "KeyError";
     Object.setPrototypeOf(this, KeyError.prototype);
   }
 }
@@ -45,20 +45,20 @@ export function joinUrlParts(...args: string[]) {
   return args
     .map((part, i) => {
       if (i === 0) {
-        return part.trim().replace(/[/]*$/g, '');
+        return part.trim().replace(/[/]*$/g, "");
       } else {
-        return part.trim().replace(/(^[/]*|[/]*$)/g, '');
+        return part.trim().replace(/(^[/]*|[/]*$)/g, "");
       }
     })
     .filter((x) => x.length)
-    .join('/');
+    .join("/");
 }
 
 function resolve(root: string | URL, path: AbsolutePath): URL {
-  const base = typeof root === 'string' ? new URL(root) : root;
-  if (!base.pathname.endsWith('/')) {
+  const base = typeof root === "string" ? new URL(root) : root;
+  if (!base.pathname.endsWith("/")) {
     // ensure trailing slash so that base is resolved as _directory_
-    base.pathname += '/';
+    base.pathname += "/";
   }
   const resolved = new URL(path.slice(1), base);
   // copy search params to new URL
@@ -184,10 +184,10 @@ export interface DataZattrs {
 }
 
 export interface Metadata {
-  '.zattrs': Zattrs;
-  '.zgroup': Zgroup;
-  'data/.zarray': DataZarray;
-  'data/.zattrs': DataZattrs;
+  ".zattrs": Zattrs;
+  ".zgroup": Zgroup;
+  "data/.zarray": DataZarray;
+  "data/.zattrs": DataZattrs;
 }
 
 export interface XArrayMetadata {

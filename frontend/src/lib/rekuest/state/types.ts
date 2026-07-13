@@ -1,4 +1,4 @@
-import { ZodType } from 'zod';
+import { ZodType } from "zod";
 
 export interface StateDefinition<T, TKey extends string = string> {
   key: TKey;

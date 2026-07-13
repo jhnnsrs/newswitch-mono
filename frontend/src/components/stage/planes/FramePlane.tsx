@@ -1,18 +1,18 @@
-import { useViewerStore } from '@/store/viewerStore';
-import { open } from 'zarrita';
-import type { AbsolutePath } from '@zarrita/storage';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import * as THREE from 'three';
-import type { Frame } from '../hooks/zarr/types';
-import type { ChunkData } from '../stores/types';
-import { mapDTypeToMinMax } from '../stores/utils';
-import { ChunkPlane } from './ChunkPlane';
-import { redColormap } from '../hooks/zarr/colormaps';
-import { useSelectionStore } from '@/store/imageStore';
+import { useViewerStore } from "@/store/viewerStore";
+import { open } from "zarrita";
+import type { AbsolutePath } from "@zarrita/storage";
+import { useEffect, useMemo, useRef, useState } from "react";
+import * as THREE from "three";
+import type { Frame } from "../hooks/zarr/types";
+import type { ChunkData } from "../stores/types";
+import { mapDTypeToMinMax } from "../stores/utils";
+import { ChunkPlane } from "./ChunkPlane";
+import { redColormap } from "../hooks/zarr/colormaps";
+import { useSelectionStore } from "@/store/imageStore";
 
 const InvertedHullOutline = ({
   children,
-  color = '#10b981',
+  color = "#10b981",
   thickness = 1.03,
   enabled = true,
 }: {
@@ -32,9 +32,9 @@ const InvertedHullOutline = ({
       if (child instanceof THREE.Mesh && !child.userData.isOutline) {
         if (
           child.material instanceof THREE.Material &&
-          'transparent' in child.material &&
+          "transparent" in child.material &&
           child.material.transparent &&
-          'opacity' in child.material &&
+          "opacity" in child.material &&
           child.material.opacity < 0.5
         ) {
           return;
@@ -88,7 +88,7 @@ export const FramePlane = ({ frame }: { frame: Frame }) => {
     const initializeZarr = async () => {
       try {
         const store = storeBuilder(frame);
-        const arr = await open.v3(store, { kind: 'array' });
+        const arr = await open.v3(store, { kind: "array" });
 
         if (!isMounted) return;
         console.log(

@@ -1,21 +1,21 @@
-import type { LightPathState } from '@/components/lightpathstate/LightPathStateRender';
-import { Suspense, useEffect, useRef } from 'react';
-import * as THREE from 'three';
-import { DetectorKubePlane } from './kubes/DetectorKubePlane';
-import { ObjectiveKubePlane } from './kubes/ObjectiveKubePlane';
-import { FilterKubePlane } from './kubes/FilterKubePlane';
-import { IlluminationKubePlane } from './kubes/IlluminationKubePlane';
-import { StageKubePlane } from './kubes/StageKubePlane';
-import { DichroicKubePlane } from './kubes/DichroicKube';
-import { LightPathEdges } from './edges/LightPathEdges';
-import { useModeStore } from '@/store/modeStore';
-import { useKubeStateStore } from '@/store/kubeStateStore';
-import { useSelectedFrame } from '../hooks/useSelectedFrame';
+import type { LightPathState } from "@/components/lightpathstate/LightPathStateRender";
+import { Suspense, useEffect, useRef } from "react";
+import * as THREE from "three";
+import { DetectorKubePlane } from "./kubes/DetectorKubePlane";
+import { ObjectiveKubePlane } from "./kubes/ObjectiveKubePlane";
+import { FilterKubePlane } from "./kubes/FilterKubePlane";
+import { IlluminationKubePlane } from "./kubes/IlluminationKubePlane";
+import { StageKubePlane } from "./kubes/StageKubePlane";
+import { DichroicKubePlane } from "./kubes/DichroicKube";
+import { LightPathEdges } from "./edges/LightPathEdges";
+import { useModeStore } from "@/store/modeStore";
+import { useKubeStateStore } from "@/store/kubeStateStore";
+import { useSelectedFrame } from "../hooks/useSelectedFrame";
 
 // --- The High-Performance Outline Wrapper ---
 export const InvertedHullOutline = ({
   children,
-  color = '#10b981', // Emerald Glow
+  color = "#10b981", // Emerald Glow
   thickness = 1.05, // Inflate the hull by 5%
   enabled = true,
 }: {
@@ -105,19 +105,19 @@ export const LightPathStatePlane = ({ path }: { path: LightPathState }) => {
               <InvertedHullOutline enabled={isSelected}>
                 {(() => {
                   switch (kube.__identifier) {
-                    case 'objective_kube_state':
+                    case "objective_kube_state":
                       return <ObjectiveKubePlane data={kube} />;
-                    case 'detector_kube_state':
+                    case "detector_kube_state":
                       return <DetectorKubePlane data={kube} />;
-                    case 'filter_kube_state':
+                    case "filter_kube_state":
                       return <FilterKubePlane data={kube} />;
-                    case 'illumination_kube_state':
+                    case "illumination_kube_state":
                       return <IlluminationKubePlane data={kube} />;
-                    case 'stage_kube_state':
+                    case "stage_kube_state":
                       return <StageKubePlane data={kube} />;
-                    case 'dichroic_kube_state':
+                    case "dichroic_kube_state":
                       return <DichroicKubePlane data={kube} />;
-                    case 'generic_kube_state':
+                    case "generic_kube_state":
                       return null;
                     default:
                       return null;
@@ -138,7 +138,7 @@ export const CurrentFrameLightPathPlane = () => {
   const currentMode = useModeStore((state) => state.interactionMode);
   const displayMode = useModeStore((state) => state.displayMode);
 
-  if (currentMode !== 'META' || displayMode !== '3D') return null;
+  if (currentMode !== "META" || displayMode !== "3D") return null;
 
   return (
     <Suspense fallback={<></>}>

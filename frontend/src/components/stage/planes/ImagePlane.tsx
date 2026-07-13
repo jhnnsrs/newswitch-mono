@@ -1,9 +1,9 @@
-import { useRef, useLayoutEffect } from 'react';
-import { useLoader } from '@react-three/fiber';
-import { TextureLoader, DoubleSide, Mesh, Matrix4 } from 'three';
-import type { ExpanseState } from '@/apps/default/hooks/states/ExpanseState';
-import { useTransport } from '@/lib/rekuest/transport/transport-context';
-import { useSelectionStore } from '@/store/imageStore';
+import { useRef, useLayoutEffect } from "react";
+import { useLoader } from "@react-three/fiber";
+import { TextureLoader, DoubleSide, Mesh, Matrix4 } from "three";
+import type { ExpanseState } from "@/apps/default/hooks/states/ExpanseState";
+import { useTransport } from "@/lib/rekuest/transport/transport-context";
+import { useSelectionStore } from "@/store/imageStore";
 // import { useTransport } from '../transport/TransportProvider';
 // import type { ExpanseState } from '../store/types';
 
@@ -11,14 +11,14 @@ export const ImagePlane = ({
   image,
   index,
 }: {
-  image: ExpanseState['current_images'][0];
+  image: ExpanseState["current_images"][0];
   index: number;
 }) => {
   const meshRef = useRef<Mesh>(null);
   const { apiEndpoint } = useTransport();
   const setSelectedImageId = useSelectionStore((s) => s.setSelectedImageId);
 
-  const baseUrl = apiEndpoint.replace(/\/$/, '');
+  const baseUrl = apiEndpoint.replace(/\/$/, "");
   const url = `${baseUrl}/files/${encodeURIComponent(image.id)}`;
 
   // Load the texture from the generated URL
@@ -59,7 +59,7 @@ export const ImagePlane = ({
       meshRef.current.matrixWorldNeedsUpdate = true;
     } else {
       console.warn(
-        '[ImagePlane] Invalid affine matrix dimensions:',
+        "[ImagePlane] Invalid affine matrix dimensions:",
         flatMatrix.length,
       );
     }

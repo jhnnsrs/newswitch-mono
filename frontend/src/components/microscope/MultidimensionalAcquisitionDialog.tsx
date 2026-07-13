@@ -1,5 +1,5 @@
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -16,11 +16,11 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Progress } from '@/components/ui/progress';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import {
   AcquireMultidimensionalAcquisitionArgsSchema,
   useAcquireMultidimensionalAcquisition,
@@ -30,15 +30,15 @@ import {
   type Stack,
   type Streams,
   type Timepoint,
-} from '@/apps/default/hooks/actions';
+} from "@/apps/default/hooks/actions";
 import {
   useCameraState,
   useIlluminationState,
   useStageState,
   type StageState,
-} from '@/apps/default/hooks/states';
-import { cn } from '@/lib/utils';
-import { zodResolver } from '@hookform/resolvers/zod';
+} from "@/apps/default/hooks/states";
+import { cn } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ChevronRight,
   Clock,
@@ -50,21 +50,21 @@ import {
   RotateCcw,
   Square,
   Trash2,
-} from 'lucide-react';
-import { useCallback, useState } from 'react';
-import { useFieldArray, useForm } from 'react-hook-form';
+} from "lucide-react";
+import { useCallback, useState } from "react";
+import { useFieldArray, useForm } from "react-hook-form";
 
 // ---------------------------------------------------------------------------
 // Helpers – z_slices is number[] in the schema, but we edit as comma string
 // ---------------------------------------------------------------------------
 
 function zSlicesToString(slices: number[]): string {
-  return slices.join(', ');
+  return slices.join(", ");
 }
 
 function stringToZSlices(raw: string): number[] {
   return raw
-    .split(',')
+    .split(",")
     .map((s) => parseFloat(s.trim()))
     .filter((n) => !isNaN(n));
 }
@@ -74,13 +74,13 @@ function stringToZSlices(raw: string): number[] {
 // ---------------------------------------------------------------------------
 
 function makeDefaultIllumination(): Illumination {
-  return { source: 'LED1', wavelength: 488, intensity: 0.8 };
+  return { source: "LED1", wavelength: 488, intensity: 0.8 };
 }
 
 function makeDefaultStream(): Streams {
   return {
-    detector: 'camera_1',
-    mapping: 'default',
+    detector: "camera_1",
+    mapping: "default",
     illuminations: [makeDefaultIllumination()],
   };
 }
@@ -113,7 +113,7 @@ function makeDefaultPosition(
 function makeDefaultTimepoint(positions?: Position[]): Timepoint {
   return {
     time: undefined,
-    position_order: 'sequential',
+    position_order: "sequential",
     positions: positions ?? [makeDefaultPosition()],
     t_hooks: [],
   };
@@ -125,8 +125,8 @@ function makeDefaultConfig(
   return {
     config: {
       timepoints: [makeDefaultTimepoint(positions)],
-      file_name: 'acquisition_001',
-      file_format: 'tiff',
+      file_name: "acquisition_001",
+      file_format: "tiff",
       m_hooks: [],
     },
   };
@@ -170,7 +170,7 @@ export function MultidimensionalAcquisitionDialog() {
       activeDetectors.length > 0
         ? activeDetectors.map((det) => ({
             detector: det.name,
-            mapping: det.current_colormap || 'default',
+            mapping: det.current_colormap || "default",
             illuminations:
               activeIlluminations.length > 0
                 ? activeIlluminations.map((ill) => {
@@ -201,7 +201,7 @@ export function MultidimensionalAcquisitionDialog() {
 
   const timepointsField = useFieldArray({
     control: form.control,
-    name: 'config.timepoints',
+    name: "config.timepoints",
   });
 
   // Ensure indices stay valid
@@ -352,9 +352,9 @@ export function MultidimensionalAcquisitionDialog() {
                           key={field.id}
                           type="button"
                           className={cn(
-                            'group w-full text-left rounded-md px-3 py-2 text-sm transition-colors',
-                            'hover:bg-accent',
-                            tpIdx === safeTP && 'bg-accent font-medium',
+                            "group w-full text-left rounded-md px-3 py-2 text-sm transition-colors",
+                            "hover:bg-accent",
+                            tpIdx === safeTP && "bg-accent font-medium",
                           )}
                           onClick={() => {
                             setSelectedTimepoint(tpIdx);
@@ -383,7 +383,7 @@ export function MultidimensionalAcquisitionDialog() {
                           </div>
                           <div className="text-xs text-muted-foreground mt-0.5">
                             {tpPositions.length} position
-                            {tpPositions.length !== 1 && 's'}
+                            {tpPositions.length !== 1 && "s"}
                           </div>
                         </button>
                       );
@@ -417,9 +417,9 @@ export function MultidimensionalAcquisitionDialog() {
                         key={posIdx}
                         type="button"
                         className={cn(
-                          'w-full text-left rounded-md px-3 py-2 text-sm transition-colors',
-                          'hover:bg-accent',
-                          posIdx === safePos && 'bg-accent font-medium',
+                          "w-full text-left rounded-md px-3 py-2 text-sm transition-colors",
+                          "hover:bg-accent",
+                          posIdx === safePos && "bg-accent font-medium",
                         )}
                         onClick={() => setSelectedPosition(posIdx)}
                       >
@@ -491,7 +491,7 @@ export function MultidimensionalAcquisitionDialog() {
                   <span className="text-xs text-muted-foreground">Status</span>
                   <Badge
                     variant={
-                      task.status === 'completed' ? 'default' : 'secondary'
+                      task.status === "completed" ? "default" : "secondary"
                     }
                   >
                     {task.status}
@@ -535,7 +535,7 @@ function PositionAddButton({
   defaultChannels,
   onAdded,
 }: {
-  control: ReturnType<typeof useForm<FormValues>>['control'];
+  control: ReturnType<typeof useForm<FormValues>>["control"];
   timepointIndex: number;
   // The generated state type, not ReturnType<typeof useStageState>["data"] - the hook is
   // generic, so that indirection collapsed to {} and x/y/z were unreachable.
@@ -584,7 +584,7 @@ function PositionEditor({
   positionIndex,
   onRemove,
 }: {
-  control: ReturnType<typeof useForm<FormValues>>['control'];
+  control: ReturnType<typeof useForm<FormValues>>["control"];
   timepointIndex: number;
   positionIndex: number;
   onRemove?: () => void;
@@ -618,7 +618,7 @@ function PositionEditor({
 
       {/* XYZ */}
       <div className="grid grid-cols-3 gap-3">
-        {(['x', 'y', 'z'] as const).map((axis) => (
+        {(["x", "y", "z"] as const).map((axis) => (
           <FormField
             key={axis}
             control={control}
@@ -687,7 +687,7 @@ function StackEditor({
   canRemove,
   onRemove,
 }: {
-  control: ReturnType<typeof useForm<FormValues>>['control'];
+  control: ReturnType<typeof useForm<FormValues>>["control"];
   timepointIndex: number;
   positionIndex: number;
   stackIndex: number;
@@ -842,7 +842,7 @@ function ChannelEditor({
   canRemove,
   onRemove,
 }: {
-  control: ReturnType<typeof useForm<FormValues>>['control'];
+  control: ReturnType<typeof useForm<FormValues>>["control"];
   timepointIndex: number;
   positionIndex: number;
   stackIndex: number;

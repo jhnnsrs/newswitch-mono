@@ -1,5 +1,8 @@
-import type { RekuestAppDefinition, RekuestAppsDefinition } from '@/lib/rekuest/types';
-import type { ResolvedStateDefinition, StateDefinition } from './types';
+import type {
+  RekuestAppDefinition,
+  RekuestAppsDefinition,
+} from "@/lib/rekuest/types";
+import type { ResolvedStateDefinition, StateDefinition } from "./types";
 
 export const getScopedStateKey = (appKey: string, stateKey: string) =>
   `${appKey}::state::${stateKey}`;

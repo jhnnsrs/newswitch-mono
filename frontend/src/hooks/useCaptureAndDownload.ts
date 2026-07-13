@@ -1,6 +1,6 @@
-import { useTransport } from '@/lib/rekuest/transport/transport-context';
-import { useCallback, useState } from 'react';
-import { useCaptureImage } from '@/apps/default/hooks/actions';
+import { useTransport } from "@/lib/rekuest/transport/transport-context";
+import { useCallback, useState } from "react";
+import { useCaptureImage } from "@/apps/default/hooks/actions";
 
 interface UseCaptureAndDownloadOptions {
   /** Custom filename for the download (without extension) */
@@ -48,7 +48,7 @@ export function useCaptureAndDownload(
       setError(null);
 
       try {
-        const baseUrl = apiEndpoint.replace(/\/$/, '');
+        const baseUrl = apiEndpoint.replace(/\/$/, "");
         const url = `${baseUrl}/files/${encodeURIComponent(filePath)}`;
 
         const response = await fetch(url);
@@ -60,11 +60,11 @@ export function useCaptureAndDownload(
         const blob = await response.blob();
 
         // Extract filename from path or use provided one
-        const fileName = filePath.split('/').pop() || 'capture.png';
+        const fileName = filePath.split("/").pop() || "capture.png";
 
         // Create download link
         const downloadUrl = URL.createObjectURL(blob);
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = downloadUrl;
         link.download = fileName;
         document.body.appendChild(link);
@@ -74,9 +74,9 @@ export function useCaptureAndDownload(
         // Cleanup
         URL.revokeObjectURL(downloadUrl);
       } catch (err) {
-        const error = err instanceof Error ? err : new Error('Download failed');
+        const error = err instanceof Error ? err : new Error("Download failed");
         setError(error);
-        console.error('[useCaptureAndDownload] Download error:', error);
+        console.error("[useCaptureAndDownload] Download error:", error);
       } finally {
         setIsDownloading(false);
       }
@@ -91,9 +91,9 @@ export function useCaptureAndDownload(
       // `capture_image` returns one Frame per active detector. A Frame's `id` IS the
       // file handle path served by `GET /files/{file_path}` (see ImagePlane, which
       // renders `/files/${image.id}`), so the download path is the frame's id.
-      console.log('[useCaptureAndDownload] Starting capture...');
+      console.log("[useCaptureAndDownload] Starting capture...");
       const frames = await captureImage({});
-      console.log('[useCaptureAndDownload] Capture returned frames:', frames);
+      console.log("[useCaptureAndDownload] Capture returned frames:", frames);
       const filePath = frames.return0[0]?.id ?? null;
 
       if (filePath) {
@@ -108,9 +108,9 @@ export function useCaptureAndDownload(
 
       return null;
     } catch (err) {
-      const error = err instanceof Error ? err : new Error('Capture failed');
+      const error = err instanceof Error ? err : new Error("Capture failed");
       setError(error);
-      console.error('[useCaptureAndDownload] Capture error:', error);
+      console.error("[useCaptureAndDownload] Capture error:", error);
       return null;
     }
   }, [captureImage, autoDownload, downloadFile]);

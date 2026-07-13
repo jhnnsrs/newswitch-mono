@@ -1,8 +1,8 @@
-import { createContext, useContext } from 'react';
-import { useStore } from 'zustand';
-import type { StoreApi } from 'zustand/vanilla';
+import { createContext, useContext } from "react";
+import { useStore } from "zustand";
+import type { StoreApi } from "zustand/vanilla";
 
-const identity = <T,>(value: T) => value;
+const identity = <T>(value: T) => value;
 
 export function createScopedStoreHooks<
   TState,
@@ -25,9 +25,7 @@ export function createScopedStoreHooks<
   function useScopedStore<TSelected>(
     selector: (state: TState) => TSelected,
   ): TSelected;
-  function useScopedStore<TSelected>(
-    selector?: (state: TState) => TSelected,
-  ) {
+  function useScopedStore<TSelected>(selector?: (state: TState) => TSelected) {
     const store = useStoreApi();
 
     return useStore(

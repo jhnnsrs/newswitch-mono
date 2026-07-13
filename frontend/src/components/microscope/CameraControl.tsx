@@ -1,16 +1,16 @@
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import {
   useActivateDetector,
   useDeactivateDetector,
   useUpdateDetector,
-} from '@/apps/default/hooks/actions';
-import { useCameraState } from '@/apps/default/hooks/states';
-import { cn } from '@/lib/utils';
-import { Gauge, MonitorUp, Timer } from 'lucide-react';
-import { useState } from 'react';
-import { OptimisticSlider } from '../ui/optimistic_slider';
-import { ResponsiveGrid } from '../ui/responsive-grid';
+} from "@/apps/default/hooks/actions";
+import { useCameraState } from "@/apps/default/hooks/states";
+import { cn } from "@/lib/utils";
+import { Gauge, MonitorUp, Timer } from "lucide-react";
+import { useState } from "react";
+import { OptimisticSlider } from "../ui/optimistic_slider";
+import { ResponsiveGrid } from "../ui/responsive-grid";
 
 export function CameraControl() {
   const { data: cameraState, loading: stateLoading } = useCameraState({
@@ -77,10 +77,10 @@ export function CameraControl() {
             <div
               key={detector.slot}
               className={cn(
-                '@container min-w-0 overflow-hidden rounded-lg border transition-all',
+                "@container min-w-0 overflow-hidden rounded-lg border transition-all",
                 isActive
-                  ? 'bg-primary/5 border-primary/30'
-                  : 'bg-muted/30 border-transparent',
+                  ? "bg-primary/5 border-primary/30"
+                  : "bg-muted/30 border-transparent",
               )}
             >
               {/* Detector Header */}
@@ -94,8 +94,8 @@ export function CameraControl() {
                   <div className="flex min-w-0 items-center gap-2">
                     <MonitorUp
                       className={cn(
-                        'h-4 w-4 shrink-0',
-                        isActive && 'text-green-500',
+                        "h-4 w-4 shrink-0",
+                        isActive && "text-green-500",
                       )}
                     />
                     <span className="truncate text-sm font-medium">
@@ -105,7 +105,7 @@ export function CameraControl() {
                   <div className="flex items-center justify-between gap-2 @[280px]:justify-end">
                     {isActive && (
                       <span className="hidden text-xs font-mono text-muted-foreground @[340px]:inline">
-                        {detector.current_exposure_time.toFixed(0)}ms /{' '}
+                        {detector.current_exposure_time.toFixed(0)}ms /{" "}
                         {detector.current_gain.toFixed(1)}×
                       </span>
                     )}
@@ -176,8 +176,8 @@ export function CameraControl() {
                                 Math.abs(
                                   (detector.current_exposure_time ?? 0) - val,
                                 ) < 0.5
-                                  ? 'default'
-                                  : 'outline'
+                                  ? "default"
+                                  : "outline"
                               }
                               onClick={() =>
                                 updateDetector({
@@ -232,8 +232,8 @@ export function CameraControl() {
                             size="sm"
                             variant={
                               Math.abs((detector.current_gain ?? 0) - val) < 0.1
-                                ? 'default'
-                                : 'outline'
+                                ? "default"
+                                : "outline"
                             }
                             onClick={() =>
                               updateDetector({ slot: detector.slot, gain: val })

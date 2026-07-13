@@ -1,9 +1,5 @@
-import { useBlockingLock } from './store';
-import type {
-  LockDefinition,
-  UseLockOptions,
-  UseLockResult,
-} from './types';
+import { useBlockingLock } from "./store";
+import type { LockDefinition, UseLockOptions, UseLockResult } from "./types";
 
 export const useLock = <T extends string>(
   definition: LockDefinition<T>,

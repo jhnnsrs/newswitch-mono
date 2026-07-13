@@ -1,22 +1,13 @@
-import type { ReactNode } from 'react';
-import { useMemo } from 'react';
-import {
-  createSelectionStore,
-  SelectionStoreContext,
-} from './imageStore';
-import {
-  createKubeStateStore,
-  KubeStateStoreContext,
-} from './kubeStateStore';
-import { createKubeStore, KubeStoreContext } from './kubeStore';
-import { createModeStore, ModeStoreContext } from './modeStore';
-import {
-  createScansStore,
-  ScansStoreContext,
-} from './scansStore';
-import { createTimeStore, TimeStoreContext } from './timeStore';
-import { createViewStore, ViewStoreContext } from './viewStore';
-import { createViewerStore, ViewerStoreContext } from './viewerStore';
+import type { ReactNode } from "react";
+import { useMemo } from "react";
+import { createSelectionStore, SelectionStoreContext } from "./imageStore";
+import { createKubeStateStore, KubeStateStoreContext } from "./kubeStateStore";
+import { createKubeStore, KubeStoreContext } from "./kubeStore";
+import { createModeStore, ModeStoreContext } from "./modeStore";
+import { createScansStore, ScansStoreContext } from "./scansStore";
+import { createTimeStore, TimeStoreContext } from "./timeStore";
+import { createViewStore, ViewStoreContext } from "./viewStore";
+import { createViewerStore, ViewerStoreContext } from "./viewerStore";
 
 export interface LocalStoreBundle {
   modeStore: ReturnType<typeof createModeStore>;
@@ -61,7 +52,7 @@ export interface LocalStoreProviderProps {
 
 export function LocalStoreProvider({
   children,
-  scope = 'default',
+  scope = "default",
 }: LocalStoreProviderProps) {
   const stores = useMemo(() => getScopedBundle(scope), [scope]);
 

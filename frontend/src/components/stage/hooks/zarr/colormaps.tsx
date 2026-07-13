@@ -68,20 +68,20 @@ export const viridisColormap = createColormapTexture(
     const viridis = (t: number) => {
       return [
         c0[0] +
-        t *
-        (c1[0] +
           t *
-          (c2[0] + t * (c3[0] + t * (c4[0] + t * (c5[0] + t * c6[0]))))),
+            (c1[0] +
+              t *
+                (c2[0] + t * (c3[0] + t * (c4[0] + t * (c5[0] + t * c6[0]))))),
         c0[1] +
-        t *
-        (c1[1] +
           t *
-          (c2[1] + t * (c3[1] + t * (c4[1] + t * (c5[1] + t * c6[1]))))),
+            (c1[1] +
+              t *
+                (c2[1] + t * (c3[1] + t * (c4[1] + t * (c5[1] + t * c6[1]))))),
         c0[2] +
-        t *
-        (c1[2] +
           t *
-          (c2[2] + t * (c3[2] + t * (c4[2] + t * (c5[2] + t * c6[2]))))),
+            (c1[2] +
+              t *
+                (c2[2] + t * (c3[2] + t * (c4[2] + t * (c5[2] + t * c6[2]))))),
       ];
     };
 
@@ -254,17 +254,17 @@ export const boneColormap = createColormapTexture(
     let r, g, b;
 
     if (t < 3 / 8) {
-      r = 7 / 8 * t;
-      g = 7 / 8 * t;
-      b = 29 / 24 * t;
+      r = (7 / 8) * t;
+      g = (7 / 8) * t;
+      b = (29 / 24) * t;
     } else if (t < 3 / 4) {
-      r = 1 / 8 + 7 / 8 * t;
-      g = 1 / 8 + 7 / 8 * t;
-      b = 29 / 24 * (3 / 8) + (t - 3 / 8);
+      r = 1 / 8 + (7 / 8) * t;
+      g = 1 / 8 + (7 / 8) * t;
+      b = (29 / 24) * (3 / 8) + (t - 3 / 8);
     } else {
-      r = 1 / 8 + 7 / 8 * t;
-      g = 1 / 8 + 7 / 8 * (3 / 4) + (t - 3 / 4);
-      b = 29 / 24 * (3 / 8) + (3 / 4 - 3 / 8) + (t - 3 / 4);
+      r = 1 / 8 + (7 / 8) * t;
+      g = 1 / 8 + (7 / 8) * (3 / 4) + (t - 3 / 4);
+      b = (29 / 24) * (3 / 8) + (3 / 4 - 3 / 8) + (t - 3 / 4);
     }
 
     return [
@@ -313,9 +313,9 @@ export const turboColormap = createColormapTexture(
     const t = i / 255;
 
     const turbo = (t: number) => {
-      const kRedVec4 = [0.13572138, 4.61539260, -42.66032258, 132.13108234];
+      const kRedVec4 = [0.13572138, 4.6153926, -42.66032258, 132.13108234];
       const kGreenVec4 = [0.09140261, 2.19418839, 4.84296658, -14.18503333];
-      const kBlueVec4 = [0.10667330, 12.64194608, -60.58204836, 110.36276771];
+      const kBlueVec4 = [0.1066733, 12.64194608, -60.58204836, 110.36276771];
       const kRedVec2 = [-152.94239396, 59.28637943];
       const kGreenVec2 = [4.27729857, 2.82956604];
       const kBlueVec2 = [-89.90310912, 27.34824973];
@@ -323,17 +323,44 @@ export const turboColormap = createColormapTexture(
       const v4 = [1.0, t, t * t, t * t * t];
       const v2 = [v4[2] * v4[2], v4[2] * v4[3]];
 
-      const r = Math.min(Math.max(
-        kRedVec4[0] * v4[0] + kRedVec4[1] * v4[1] + kRedVec4[2] * v4[2] + kRedVec4[3] * v4[3] +
-        kRedVec2[0] * v2[0] + kRedVec2[1] * v2[1], 0), 1);
+      const r = Math.min(
+        Math.max(
+          kRedVec4[0] * v4[0] +
+            kRedVec4[1] * v4[1] +
+            kRedVec4[2] * v4[2] +
+            kRedVec4[3] * v4[3] +
+            kRedVec2[0] * v2[0] +
+            kRedVec2[1] * v2[1],
+          0,
+        ),
+        1,
+      );
 
-      const g = Math.min(Math.max(
-        kGreenVec4[0] * v4[0] + kGreenVec4[1] * v4[1] + kGreenVec4[2] * v4[2] + kGreenVec4[3] * v4[3] +
-        kGreenVec2[0] * v2[0] + kGreenVec2[1] * v2[1], 0), 1);
+      const g = Math.min(
+        Math.max(
+          kGreenVec4[0] * v4[0] +
+            kGreenVec4[1] * v4[1] +
+            kGreenVec4[2] * v4[2] +
+            kGreenVec4[3] * v4[3] +
+            kGreenVec2[0] * v2[0] +
+            kGreenVec2[1] * v2[1],
+          0,
+        ),
+        1,
+      );
 
-      const b = Math.min(Math.max(
-        kBlueVec4[0] * v4[0] + kBlueVec4[1] * v4[1] + kBlueVec4[2] * v4[2] + kBlueVec4[3] * v4[3] +
-        kBlueVec2[0] * v2[0] + kBlueVec2[1] * v2[1], 0), 1);
+      const b = Math.min(
+        Math.max(
+          kBlueVec4[0] * v4[0] +
+            kBlueVec4[1] * v4[1] +
+            kBlueVec4[2] * v4[2] +
+            kBlueVec4[3] * v4[3] +
+            kBlueVec2[0] * v2[0] +
+            kBlueVec2[1] * v2[1],
+          0,
+        ),
+        1,
+      );
 
       return [r, g, b];
     };

@@ -1,25 +1,25 @@
-import { useScansStore, type ScanPattern } from '@/store/scansStore';
-import { useViewStore } from '@/store/viewStore';
-import { useMemo } from 'react';
-import * as THREE from 'three';
+import { useScansStore, type ScanPattern } from "@/store/scansStore";
+import { useViewStore } from "@/store/viewStore";
+import { useMemo } from "react";
+import * as THREE from "three";
 
 // Shadcn UI Imports
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   ScanRegionArgsSchema,
   ScanRegionDefinition,
   useScanRegion,
-} from '@/apps/default/hooks/actions';
-import { ActionButton } from '@/components/ActionButton';
-import { getOptionsFromZod } from '@/hooks/zodToChoices';
+} from "@/apps/default/hooks/actions";
+import { ActionButton } from "@/components/ActionButton";
+import { getOptionsFromZod } from "@/hooks/zodToChoices";
 
 const scanPatternOptions = getOptionsFromZod(
   ScanRegionArgsSchema.shape.scan_order,

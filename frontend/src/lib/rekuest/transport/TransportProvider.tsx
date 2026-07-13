@@ -1,11 +1,11 @@
-import type { ReactNode } from 'react';
-import { useCallback, useEffect, useMemo } from 'react';
-import type { AppKey, AppsDefinition } from '@/lib/rekuest/types';
+import type { ReactNode } from "react";
+import { useCallback, useEffect, useMemo } from "react";
+import type { AppKey, AppsDefinition } from "@/lib/rekuest/types";
 import {
   TransportSubscriptionManager,
   type TransportManagerEndpoints,
-} from '@/lib/rekuest/transport/subscription-manager';
-import { TransportContext } from './transport-context';
+} from "@/lib/rekuest/transport/subscription-manager";
+import { TransportContext } from "./transport-context";
 import type {
   AssignInput,
   AssignOptions,
@@ -21,7 +21,7 @@ import type {
   TransportConfig,
   TransportContextValue,
   WebSocketSubscriptionInit,
-} from '@/lib/rekuest/transport/types';
+} from "@/lib/rekuest/transport/types";
 
 const DEFAULT_RECONNECT_CONFIG = {
   maxAttempts: 5,
@@ -50,15 +50,19 @@ function normalizeTask<TArgs = unknown, TReturn = unknown>(
   return {
     id: String(data.task_id ?? data.id),
     appKey,
-    action: String(data.action ?? 'unknown'),
+    action: String(data.action ?? "unknown"),
     args: (data.args ?? {}) as TArgs,
-    status: data.status as Task<TArgs, TReturn>['status'],
+    status: data.status as Task<TArgs, TReturn>["status"],
     result: data.result as TReturn | undefined,
     error: data.error as string | undefined,
     progress: data.progress as number | undefined,
     reference: String(data.reference ?? data.task_id ?? data.id),
-    createdAt: new Date(String(data.created_at ?? data.createdAt ?? Date.now())),
-    updatedAt: new Date(String(data.updated_at ?? data.updatedAt ?? Date.now())),
+    createdAt: new Date(
+      String(data.created_at ?? data.createdAt ?? Date.now()),
+    ),
+    updatedAt: new Date(
+      String(data.updated_at ?? data.updatedAt ?? Date.now()),
+    ),
   };
 }
 
@@ -67,23 +71,25 @@ function createWsBaseUrl(apiEndpoint: string, wsEndpoint?: string) {
     return wsEndpoint;
   }
   const url = new URL(apiEndpoint);
-  url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
-  url.pathname = url.pathname.replace(/\/$/, '') + '/ws';
+  url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
+  url.pathname = url.pathname.replace(/\/$/, "") + "/ws";
   return url.toString();
 }
 
-function createSubscriptionInit(app: AppsDefinition[AppKey]): WebSocketSubscriptionInit {
+function createSubscriptionInit(
+  app: AppsDefinition[AppKey],
+): WebSocketSubscriptionInit {
   return {
-    type: 'INIT',
-    action_keys: Object.values(app.actions as Record<string, { name?: string }>).flatMap(
-      (definition) => (definition.name ? [definition.name] : []),
-    ),
-    state_keys: Object.values(app.states as Record<string, { key?: string }>).flatMap(
-      (definition) => (definition.key ? [definition.key] : []),
-    ),
-    lock_keys: Object.values(app.locks as Record<string, { key?: string }>).flatMap(
-      (definition) => (definition.key ? [definition.key] : []),
-    ),
+    type: "INIT",
+    action_keys: Object.values(
+      app.actions as Record<string, { name?: string }>,
+    ).flatMap((definition) => (definition.name ? [definition.name] : [])),
+    state_keys: Object.values(
+      app.states as Record<string, { key?: string }>,
+    ).flatMap((definition) => (definition.key ? [definition.key] : [])),
+    lock_keys: Object.values(
+      app.locks as Record<string, { key?: string }>,
+    ).flatMap((definition) => (definition.key ? [definition.key] : [])),
   };
 }
 
@@ -103,11 +109,13 @@ function createSubscriptionInitWithIntervals(
         return [];
       }
 
-      if (configuredKey === '*') {
+      if (configuredKey === "*") {
         return [[configuredKey, interval] as const];
       }
 
-      const stateDefinition = (app.states as Record<string, { key?: string }>)[configuredKey];
+      const stateDefinition = (app.states as Record<string, { key?: string }>)[
+        configuredKey
+      ];
       return [[stateDefinition?.key ?? configuredKey, interval] as const];
     }),
   );
@@ -134,11 +142,15 @@ function parseSessionBoundaries(data: {
   };
 }
 
-export function TransportProvider({ children, config, apps }: TransportProviderProps) {
+export function TransportProvider({
+  children,
+  config,
+  apps,
+}: TransportProviderProps) {
   const appKeys = useMemo(() => Object.keys(apps) as AppKey[], [apps]);
 
   if (appKeys.length === 0) {
-    throw new Error('TransportProvider requires at least one configured app.');
+    throw new Error("TransportProvider requires at least one configured app.");
   }
 
   const reconnect = useMemo(
@@ -196,18 +208,26 @@ export function TransportProvider({ children, config, apps }: TransportProviderP
   );
 
   const subscriptionManager = useMemo(
-    () => new TransportSubscriptionManager({
-      getEndpoints: (appKey) => getEndpoints(appKey) as TransportManagerEndpoints,
-      getSubscriptionInit: (appKey) =>
-        createSubscriptionInitWithIntervals(
-          getApp(appKey),
-          config.appStateUpdateIntervals?.[appKey],
-        ),
-      reconnect,
+    () =>
+      new TransportSubscriptionManager({
+        getEndpoints: (appKey) =>
+          getEndpoints(appKey) as TransportManagerEndpoints,
+        getSubscriptionInit: (appKey) =>
+          createSubscriptionInitWithIntervals(
+            getApp(appKey),
+            config.appStateUpdateIntervals?.[appKey],
+          ),
+        reconnect,
+        pingInterval,
+        keepAliveOnNoListeners: true,
+      }),
+    [
+      config.appStateUpdateIntervals,
+      getApp,
+      getEndpoints,
       pingInterval,
-      keepAliveOnNoListeners: true,
-    }),
-    [config.appStateUpdateIntervals, getApp, getEndpoints, pingInterval, reconnect],
+      reconnect,
+    ],
   );
 
   const assignAction = useCallback(
@@ -218,7 +238,7 @@ export function TransportProvider({ children, config, apps }: TransportProviderP
       options?: AssignOptions,
     ): Promise<AssignResponse> => {
       const { apiEndpoint } = getEndpoints(appKey);
-      const url = `${apiEndpoint.replace(/\/$/, '')}/${actionName}`;
+      const url = `${apiEndpoint.replace(/\/$/, "")}/${actionName}`;
       const assignInput: AssignInput<TArgs> = {
         args,
         instanceId: config.instanceId,
@@ -237,14 +257,16 @@ export function TransportProvider({ children, config, apps }: TransportProviderP
       };
 
       const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(assignInput),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Failed to assign action: ${response.status} ${errorText}`);
+        throw new Error(
+          `Failed to assign action: ${response.status} ${errorText}`,
+        );
       }
 
       return (await response.json()) as AssignResponse;
@@ -258,7 +280,7 @@ export function TransportProvider({ children, config, apps }: TransportProviderP
       taskId: string,
     ): Promise<Task<TArgs, TReturn>> => {
       const { apiEndpoint } = getEndpoints(appKey);
-      const url = `${apiEndpoint.replace(/\/$/, '')}/tasks/${taskId}`;
+      const url = `${apiEndpoint.replace(/\/$/, "")}/tasks/${taskId}`;
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -275,31 +297,38 @@ export function TransportProvider({ children, config, apps }: TransportProviderP
   const createTaskMutation = useCallback(
     (endpoint: string) => async (appKey: AppKey, taskId: string) => {
       const { apiEndpoint } = getEndpoints(appKey);
-      const url = `${apiEndpoint.replace(/\/$/, '')}/${endpoint}`;
+      const url = `${apiEndpoint.replace(/\/$/, "")}/${endpoint}`;
       const response = await fetch(url, {
-        method: 'POST',
+        method: "POST",
         body: JSON.stringify({ assignation: taskId }),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Failed to ${endpoint} task: ${response.status} ${errorText}`);
+        throw new Error(
+          `Failed to ${endpoint} task: ${response.status} ${errorText}`,
+        );
       }
     },
     [getEndpoints],
   );
 
   const fetchState = useCallback(
-    async <T = unknown,>(appKey: AppKey, stateName: string): Promise<StateView<T>> => {
+    async <T = unknown,>(
+      appKey: AppKey,
+      stateName: string,
+    ): Promise<StateView<T>> => {
       const { apiEndpoint } = getEndpoints(appKey);
-      const url = new URL(`${apiEndpoint.replace(/\/$/, '')}/states`);
-      url.searchParams.set('state_keys', stateName);
+      const url = new URL(`${apiEndpoint.replace(/\/$/, "")}/states`);
+      url.searchParams.set("state_keys", stateName);
 
       const response = await fetch(url.toString());
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Failed to fetch state: ${response.status} ${errorText}`);
+        throw new Error(
+          `Failed to fetch state: ${response.status} ${errorText}`,
+        );
       }
 
       const data = (await response.json()) as StateCollectionResponse<T>;
@@ -315,22 +344,29 @@ export function TransportProvider({ children, config, apps }: TransportProviderP
   );
 
   const fetchAll = useCallback(
-    async <T = unknown,>(appKey: AppKey, stateKeys: string[] = []): Promise<StateCollectionResponse<T>> => {
+    async <T = unknown,>(
+      appKey: AppKey,
+      stateKeys: string[] = [],
+    ): Promise<StateCollectionResponse<T>> => {
       const { apiEndpoint } = getEndpoints(appKey);
-      const url = new URL(`${apiEndpoint.replace(/\/$/, '')}/states`);
+      const url = new URL(`${apiEndpoint.replace(/\/$/, "")}/states`);
 
       if (stateKeys.length > 0) {
-        url.searchParams.set('state_keys', stateKeys.join(','));
+        url.searchParams.set("state_keys", stateKeys.join(","));
       }
 
       const response = await fetch(url.toString());
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Failed to fetch states: ${response.status} ${errorText}`);
+        throw new Error(
+          `Failed to fetch states: ${response.status} ${errorText}`,
+        );
       }
 
-      const data = (await response.json()) as Partial<StateCollectionResponse<T>>;
+      const data = (await response.json()) as Partial<
+        StateCollectionResponse<T>
+      >;
 
       return {
         current_session: data.current_session ?? null,
@@ -350,18 +386,20 @@ export function TransportProvider({ children, config, apps }: TransportProviderP
       stateKeys: string[],
     ): Promise<StateCheckoutResponse> => {
       const { apiEndpoint } = getEndpoints(appKey);
-      const url = new URL(`${apiEndpoint.replace(/\/$/, '')}/states/checkout`);
-      url.searchParams.set('global_revision_id', String(globalRevisionId));
+      const url = new URL(`${apiEndpoint.replace(/\/$/, "")}/states/checkout`);
+      url.searchParams.set("global_revision_id", String(globalRevisionId));
 
       for (const stateKey of stateKeys) {
-        url.searchParams.append('state_keys', stateKey);
+        url.searchParams.append("state_keys", stateKey);
       }
 
       const response = await fetch(url.toString());
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Failed to checkout states: ${response.status} ${errorText}`);
+        throw new Error(
+          `Failed to checkout states: ${response.status} ${errorText}`,
+        );
       }
 
       const data = (await response.json()) as Partial<StateCheckoutResponse>;
@@ -385,19 +423,24 @@ export function TransportProvider({ children, config, apps }: TransportProviderP
       stateKeys: string[],
     ): Promise<StateSegmentsResponse> => {
       const { apiEndpoint } = getEndpoints(appKey);
-      const url = new URL(`${apiEndpoint.replace(/\/$/, '')}/states/segments`);
-      url.searchParams.set('from_global_revision_id', String(fromGlobalRevisionId));
-      url.searchParams.set('to_global_revision_id', String(toGlobalRevisionId));
+      const url = new URL(`${apiEndpoint.replace(/\/$/, "")}/states/segments`);
+      url.searchParams.set(
+        "from_global_revision_id",
+        String(fromGlobalRevisionId),
+      );
+      url.searchParams.set("to_global_revision_id", String(toGlobalRevisionId));
 
       for (const stateKey of stateKeys) {
-        url.searchParams.append('state_keys', stateKey);
+        url.searchParams.append("state_keys", stateKey);
       }
 
       const response = await fetch(url.toString());
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Failed to fetch state segments: ${response.status} ${errorText}`);
+        throw new Error(
+          `Failed to fetch state segments: ${response.status} ${errorText}`,
+        );
       }
 
       return (await response.json()) as StateSegmentsResponse;
@@ -408,12 +451,14 @@ export function TransportProvider({ children, config, apps }: TransportProviderP
   const fetchLocks = useCallback(
     async (appKey: AppKey): Promise<Record<string, { task_id: string }>> => {
       const { apiEndpoint } = getEndpoints(appKey);
-      const url = `${apiEndpoint.replace(/\/$/, '')}/locks`;
+      const url = `${apiEndpoint.replace(/\/$/, "")}/locks`;
       const response = await fetch(url);
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Failed to fetch locks: ${response.status} ${errorText}`);
+        throw new Error(
+          `Failed to fetch locks: ${response.status} ${errorText}`,
+        );
       }
 
       const data = (await response.json()) as
@@ -421,9 +466,12 @@ export function TransportProvider({ children, config, apps }: TransportProviderP
         | Record<string, { task_id: string }>
         | Array<{ key: string; task_id: string }>;
 
-      if ('locks' in data && !Array.isArray(data)) {
+      if ("locks" in data && !Array.isArray(data)) {
         return Object.fromEntries(
-          Object.entries(data.locks).map(([key, value]) => [key, { task_id: value.task_id ?? '' }]),
+          Object.entries(data.locks).map(([key, value]) => [
+            key,
+            { task_id: value.task_id ?? "" },
+          ]),
         );
       }
 
@@ -441,7 +489,7 @@ export function TransportProvider({ children, config, apps }: TransportProviderP
   const fetchActiveSessionBoundaries = useCallback(
     async (appKey: AppKey): Promise<SessionBoundaries> => {
       const { apiEndpoint } = getEndpoints(appKey);
-      const url = `${apiEndpoint.replace(/\/$/, '')}/active_session_boundaries`;
+      const url = `${apiEndpoint.replace(/\/$/, "")}/active_session_boundaries`;
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -461,7 +509,7 @@ export function TransportProvider({ children, config, apps }: TransportProviderP
   const fetchSessionBoundaries = useCallback(
     async (appKey: AppKey, sessionId: string): Promise<SessionBoundaries> => {
       const { apiEndpoint } = getEndpoints(appKey);
-      const url = `${apiEndpoint.replace(/\/$/, '')}/session_boundaries/${sessionId}`;
+      const url = `${apiEndpoint.replace(/\/$/, "")}/session_boundaries/${sessionId}`;
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -484,24 +532,29 @@ export function TransportProvider({ children, config, apps }: TransportProviderP
     };
   }, [appKeys, subscriptionManager]);
 
-  const subscribeToMessages = useCallback<TransportContextValue['subscribeToMessages']>(
+  const subscribeToMessages = useCallback<
+    TransportContextValue["subscribeToMessages"]
+  >(
     (options) => subscriptionManager.subscribeToMessages(options),
     [subscriptionManager],
   );
 
   const subscribeToConnectionState = useCallback<
-    TransportContextValue['subscribeToConnectionState']
+    TransportContextValue["subscribeToConnectionState"]
   >(
-    (appKey, listener) => subscriptionManager.subscribeToConnectionState(appKey, listener),
+    (appKey, listener) =>
+      subscriptionManager.subscribeToConnectionState(appKey, listener),
     [subscriptionManager],
   );
 
-  const reconnectSocket = useCallback<TransportContextValue['reconnectSocket']>(
+  const reconnectSocket = useCallback<TransportContextValue["reconnectSocket"]>(
     (appKey) => subscriptionManager.reconnectSocket(appKey),
     [subscriptionManager],
   );
 
-  const disconnectSocket = useCallback<TransportContextValue['disconnectSocket']>(
+  const disconnectSocket = useCallback<
+    TransportContextValue["disconnectSocket"]
+  >(
     (appKey) => subscriptionManager.disconnectSocket(appKey),
     [subscriptionManager],
   );
@@ -530,10 +583,10 @@ export function TransportProvider({ children, config, apps }: TransportProviderP
       fetchLocks,
       fetchSessionBoundaries,
       fetchActiveSessionBoundaries,
-      cancelTaskRequest: createTaskMutation('cancel'),
-      pauseTaskRequest: createTaskMutation('pause'),
-      unpauseTaskRequest: createTaskMutation('unpause'),
-      stepTaskRequest: createTaskMutation('step'),
+      cancelTaskRequest: createTaskMutation("cancel"),
+      pauseTaskRequest: createTaskMutation("pause"),
+      unpauseTaskRequest: createTaskMutation("unpause"),
+      stepTaskRequest: createTaskMutation("step"),
       subscribeToMessages,
       subscribeToConnectionState,
       reconnectSocket,
@@ -565,7 +618,11 @@ export function TransportProvider({ children, config, apps }: TransportProviderP
     ],
   );
 
-  return <TransportContext.Provider value={contextValue}>{children}</TransportContext.Provider>;
+  return (
+    <TransportContext.Provider value={contextValue}>
+      {children}
+    </TransportContext.Provider>
+  );
 }
 
 export default TransportProvider;

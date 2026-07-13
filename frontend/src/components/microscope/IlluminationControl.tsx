@@ -168,7 +168,9 @@ export function IlluminationControl() {
                 <span className="text-xs text-muted-foreground">
                   Ch {source.channel}
                 </span>
-                <span className="hidden text-xs text-muted-foreground @[240px]:inline">•</span>
+                <span className="hidden text-xs text-muted-foreground @[240px]:inline">
+                  •
+                </span>
                 <span className="hidden text-xs text-muted-foreground @[300px]:inline">
                   Slot {source.slot}
                 </span>

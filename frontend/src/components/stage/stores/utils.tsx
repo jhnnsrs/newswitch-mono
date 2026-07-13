@@ -1,11 +1,4 @@
-
 import { type DataType } from "zarrita";
-
-
-
-
-
-
 
 export const mapDTypeToMinMax = (dtype: DataType): [number, number] => {
   switch (dtype) {

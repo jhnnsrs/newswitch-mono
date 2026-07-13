@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect } from "react";
 import {
   ReactFlow,
   Background,
@@ -6,13 +6,13 @@ import {
   useEdgesState,
   type Node,
   type Edge,
-} from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
-import { type z } from 'zod';
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
+import { type z } from "zod";
 
-import type { LightPathStateSchema } from '@/apps/default/hooks/states/ExpanseState';
-import { getLayoutedElements } from './layoutUtils';
-import { nodeTypes } from './nodes';
+import type { LightPathStateSchema } from "@/apps/default/hooks/states/ExpanseState";
+import { getLayoutedElements } from "./layoutUtils";
+import { nodeTypes } from "./nodes";
 
 export type LightPathState = z.infer<typeof LightPathStateSchema>;
 
@@ -53,14 +53,14 @@ export const LightPathStateRender: React.FC<OpticalPathViewerProps> = ({
           ? `${e.intensity}%`
           : undefined,
       animated: true,
-      style: { stroke: '#555', strokeWidth: 2 },
+      style: { stroke: "#555", strokeWidth: 2 },
     }));
 
     // 3. Apply Dagre Layout
     const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
       initialNodes,
       initialEdges,
-      'LR',
+      "LR",
     );
 
     setNodes(layoutedNodes);
@@ -70,8 +70,8 @@ export const LightPathStateRender: React.FC<OpticalPathViewerProps> = ({
   return (
     <div
       style={{
-        width: '100%',
-        height: '100%',
+        width: "100%",
+        height: "100%",
       }}
     >
       <ReactFlow

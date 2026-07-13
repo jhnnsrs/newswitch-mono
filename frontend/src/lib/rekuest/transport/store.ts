@@ -1,8 +1,8 @@
-import { createContext, useContext } from 'react';
-import { useStore } from 'zustand';
-import { createStore, type StoreApi } from 'zustand/vanilla';
-import { subscribeWithSelector } from 'zustand/middleware';
-import { immer } from 'zustand/middleware/immer';
+import { createContext, useContext } from "react";
+import { useStore } from "zustand";
+import { createStore, type StoreApi } from "zustand/vanilla";
+import { subscribeWithSelector } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
 
 export interface TransportStore {
   isConnected: boolean;
@@ -78,15 +78,14 @@ export const createTransportStore = () =>
     ),
   );
 
-export const TransportStoreContext = createContext<StoreApi<TransportStore> | null>(
-  null,
-);
+export const TransportStoreContext =
+  createContext<StoreApi<TransportStore> | null>(null);
 
 export function useTransportStoreApi() {
   const storeApi = useContext(TransportStoreContext);
 
   if (!storeApi) {
-    throw new Error('Missing TransportStoreProvider');
+    throw new Error("Missing TransportStoreProvider");
   }
 
   return storeApi;
@@ -99,7 +98,11 @@ export function useTransportStore<TSelected>(
 }
 
 export const selectIsConnected = (store: TransportStore) => store.isConnected;
-export const selectIsReconnecting = (store: TransportStore) => store.isReconnecting;
-export const selectIsUnconnectable = (store: TransportStore) => store.isUnconnectable;
-export const selectReconnectAttempt = (store: TransportStore) => store.reconnectAttempt;
-export const selectRegistryVersion = (store: TransportStore) => store.registryVersion;
+export const selectIsReconnecting = (store: TransportStore) =>
+  store.isReconnecting;
+export const selectIsUnconnectable = (store: TransportStore) =>
+  store.isUnconnectable;
+export const selectReconnectAttempt = (store: TransportStore) =>
+  store.reconnectAttempt;
+export const selectRegistryVersion = (store: TransportStore) =>
+  store.registryVersion;

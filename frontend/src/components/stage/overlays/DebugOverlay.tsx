@@ -1,4 +1,4 @@
-import { useDumpStatesToStdin } from '@/apps/default/hooks/actions';
+import { useDumpStatesToStdin } from "@/apps/default/hooks/actions";
 
 export const DebugOverlay = () => {
   // TODO: not wired up - the `call` returned by useDumpStatesToStdin() is never

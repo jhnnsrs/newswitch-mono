@@ -1,9 +1,9 @@
-import { type z } from 'zod';
-import { useThreeAffine } from './useThreeAffine';
+import { type z } from "zod";
+import { useThreeAffine } from "./useThreeAffine";
 import {
   useObjectiveState,
   type ObjectiveTurretKubeSchema,
-} from '@/apps/default/hooks/states';
+} from "@/apps/default/hooks/states";
 
 type ObjectiveTurretData = z.infer<typeof ObjectiveTurretKubeSchema>;
 

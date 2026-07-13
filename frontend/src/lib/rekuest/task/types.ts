@@ -1,9 +1,9 @@
-import { z, ZodType } from 'zod';
+import { z, ZodType } from "zod";
 import type {
   AssignOptions,
   Task,
   TaskStatus,
-} from '@/lib/rekuest/transport/types';
+} from "@/lib/rekuest/transport/types";
 
 export interface ActionDefinition<
   TArgs,

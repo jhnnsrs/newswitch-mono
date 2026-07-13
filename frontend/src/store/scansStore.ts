@@ -7,8 +7,6 @@ import { createScopedStoreHooks } from "@/lib/rekuest/createScopedStore";
 
 export type ScanPattern = z.infer<typeof ScanRegionArgsSchema>["scan_order"];
 
-
-
 export interface ScanRegion {
   id: string;
   start: THREE.Vector3;
@@ -28,35 +26,35 @@ interface ScansState {
 
 export const createScansStore = () =>
   createStore<ScansState>()(
-  immer((set) => ({
-    regions: [],
-    selectedRegionId: null,
-    addRegion: (region) =>
-      set((state) => {
-        // Using immer, we can just push to the draft array
-        state.regions.push(region);
-      }),
-    updateRegion: (id, updates) =>
-      set((state) => {
-        const index = state.regions.findIndex((r) => r.id === id);
-        if (index !== -1) {
-          // Merge the updates into the existing region
-          Object.assign(state.regions[index], updates);
-        }
-      }),
-    deleteRegion: (id) =>
-      set((state) => {
-        state.regions = state.regions.filter((r) => r.id !== id);
-        if (state.selectedRegionId === id) {
-          state.selectedRegionId = null;
-        }
-      }),
-    setSelectedRegionId: (id) =>
-      set((state) => {
-        state.selectedRegionId = id;
-      }),
-  })),
-);
+    immer((set) => ({
+      regions: [],
+      selectedRegionId: null,
+      addRegion: (region) =>
+        set((state) => {
+          // Using immer, we can just push to the draft array
+          state.regions.push(region);
+        }),
+      updateRegion: (id, updates) =>
+        set((state) => {
+          const index = state.regions.findIndex((r) => r.id === id);
+          if (index !== -1) {
+            // Merge the updates into the existing region
+            Object.assign(state.regions[index], updates);
+          }
+        }),
+      deleteRegion: (id) =>
+        set((state) => {
+          state.regions = state.regions.filter((r) => r.id !== id);
+          if (state.selectedRegionId === id) {
+            state.selectedRegionId = null;
+          }
+        }),
+      setSelectedRegionId: (id) =>
+        set((state) => {
+          state.selectedRegionId = id;
+        }),
+    })),
+  );
 
 const {
   StoreContext: ScansStoreContext,

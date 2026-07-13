@@ -1,10 +1,10 @@
-import { useViewerStore } from '@/store/viewerStore';
-import { useEffect, useMemo, useState } from 'react';
-import * as THREE from 'three';
-import { open } from 'zarrita';
-import type { DataType, NumberDataType, TypedArray } from 'zarrita';
-import type { ChunkData } from '../stores/types';
-import { createColormapTexture } from '../hooks/zarr/colormaps';
+import { useViewerStore } from "@/store/viewerStore";
+import { useEffect, useMemo, useState } from "react";
+import * as THREE from "three";
+import { open } from "zarrita";
+import type { DataType, NumberDataType, TypedArray } from "zarrita";
+import type { ChunkData } from "../stores/types";
+import { createColormapTexture } from "../hooks/zarr/colormaps";
 
 // --- Helper: Memory-Efficient Texture Configuration ---
 // --- Helper: Strict WebGL2 Memory Configuration ---
@@ -24,7 +24,7 @@ function getTextureConfig(rawData: TypedArray<DataType>) {
     return {
       data: rawData,
       type: THREE.UnsignedByteType,
-      internalFormat: 'R8',
+      internalFormat: "R8",
       dataScale: 255.0,
     };
   }
@@ -33,7 +33,7 @@ function getTextureConfig(rawData: TypedArray<DataType>) {
     return {
       data: rawData,
       type: THREE.FloatType,
-      internalFormat: 'R32F',
+      internalFormat: "R32F",
       dataScale: 1.0,
     };
   }
@@ -41,7 +41,7 @@ function getTextureConfig(rawData: TypedArray<DataType>) {
   // FIX: Safely promote 16-bit integers to 32-bit floats.
   // This avoids the 'Invalid enum RED' crash caused by missing R16 support.
   console.warn(
-    'Promoting TypedArray to Float32Array for strict WebGL2 compatibility.',
+    "Promoting TypedArray to Float32Array for strict WebGL2 compatibility.",
   );
   if (!isNumericTypedArray(rawData)) {
     // zarrita's chunk type also covers bool/string/bigint arrays. Those were never
@@ -55,7 +55,7 @@ function getTextureConfig(rawData: TypedArray<DataType>) {
   return {
     data: floatData,
     type: THREE.FloatType,
-    internalFormat: 'R32F',
+    internalFormat: "R32F",
     dataScale: 1.0,
   };
 }
@@ -86,7 +86,7 @@ export const ChunkVolume = ({ chunk }: { chunk: ChunkData }) => {
     return tVisible;
   }, [chunk, tStart, tEnd]);
 
-  const [, yIdx, xIdx] = chunk.chunk_coord.split(',').map(Number);
+  const [, yIdx, xIdx] = chunk.chunk_coord.split(",").map(Number);
 
   // 2. Data Fetching & 3D Texture Mapping
   useEffect(() => {
@@ -96,7 +96,7 @@ export const ChunkVolume = ({ chunk }: { chunk: ChunkData }) => {
     let isMounted = true;
     const loadData = async () => {
       try {
-        const arr = await open.v3(chunk.store, { kind: 'array' });
+        const arr = await open.v3(chunk.store, { kind: "array" });
         const chunkData = await arr.getChunk([chunk.z_index, yIdx, xIdx]);
 
         if (!isMounted || !chunkData) return;

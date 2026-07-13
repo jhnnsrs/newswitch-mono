@@ -1,7 +1,7 @@
-import { Html } from '@react-three/drei';
-import { useThree } from '@react-three/fiber';
-import { useEffect, useState } from 'react';
-import { OrthographicCamera, PerspectiveCamera } from 'three';
+import { Html } from "@react-three/drei";
+import { useThree } from "@react-three/fiber";
+import { useEffect, useState } from "react";
+import { OrthographicCamera, PerspectiveCamera } from "three";
 
 /**
  * A Scale Bar that stays in the UI but calculates its length
@@ -9,7 +9,7 @@ import { OrthographicCamera, PerspectiveCamera } from 'three';
  */
 export const WorldScaleBar = () => {
   const { size, camera } = useThree();
-  const [scaleInfo, setScaleInfo] = useState({ widthPx: 0, label: '' });
+  const [scaleInfo, setScaleInfo] = useState({ widthPx: 0, label: "" });
 
   // Re-calculate whenever the camera zooms or the window resizes
   useEffect(() => {

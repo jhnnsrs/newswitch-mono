@@ -62,18 +62,18 @@ export interface ModeState {
 export const createModeStore = () =>
   createStore<ModeState>()(
     immer((set) => ({
-    interactionMode: "PAN", // Default starting mode
-    displayMode: "2D", // Active when holding a modifier key
-    interactionModeOptions,
-    displayModeOptions,
-    setInteractionMode: (mode) =>
-      set((state) => {
-        state.interactionMode = mode;
-      }),
-    setDisplayMode: (mode) =>
-      set((state) => {
-        state.displayMode = mode;
-      }),
+      interactionMode: "PAN", // Default starting mode
+      displayMode: "2D", // Active when holding a modifier key
+      interactionModeOptions,
+      displayModeOptions,
+      setInteractionMode: (mode) =>
+        set((state) => {
+          state.interactionMode = mode;
+        }),
+      setDisplayMode: (mode) =>
+        set((state) => {
+          state.displayMode = mode;
+        }),
     })),
   );
 

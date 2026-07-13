@@ -1,8 +1,8 @@
-import { createContext, useContext, useMemo } from 'react';
-import { useStore } from 'zustand';
-import { devtools, subscribeWithSelector } from 'zustand/middleware';
-import { immer } from 'zustand/middleware/immer';
-import { createStore, type StateCreator, type StoreApi } from 'zustand/vanilla';
+import { createContext, useContext, useMemo } from "react";
+import { useStore } from "zustand";
+import { devtools, subscribeWithSelector } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
+import { createStore, type StateCreator, type StoreApi } from "zustand/vanilla";
 
 export interface LockStore {
   locks: Record<string, string | undefined | null>;
@@ -54,44 +54,46 @@ const resolveBlockingLock = (
 
 export const createLockStore = ({
   debug = false,
-  devtoolsName = 'RekuestLockStore',
+  devtoolsName = "RekuestLockStore",
 }: LockStoreOptions = {}) => {
   const initializer: StateCreator<
     LockStore,
     [],
-    [['zustand/subscribeWithSelector', never], ['zustand/immer', never]]
+    [["zustand/subscribeWithSelector", never], ["zustand/immer", never]]
   > = subscribeWithSelector(
     immer((set) => ({
-        locks: {},
+      locks: {},
 
-        setLock: (key, value) => {
-          set((state) => {
-            state.locks[key] = value;
-          });
-        },
+      setLock: (key, value) => {
+        set((state) => {
+          state.locks[key] = value;
+        });
+      },
 
-        replaceLocks: (locks) => {
-          set((state) => {
-            state.locks = { ...locks };
-          });
-        },
+      replaceLocks: (locks) => {
+        set((state) => {
+          state.locks = { ...locks };
+        });
+      },
 
-        clearLock: (key) => {
-          set((state) => {
-            delete state.locks[key];
-          });
-        },
+      clearLock: (key) => {
+        set((state) => {
+          delete state.locks[key];
+        });
+      },
 
-        clearLocks: () => {
-          set((state) => {
-            state.locks = {};
-          });
-        },
-      })),
+      clearLocks: () => {
+        set((state) => {
+          state.locks = {};
+        });
+      },
+    })),
   );
 
   if (debug) {
-    return createStore<LockStore>()(devtools(initializer, { name: devtoolsName }));
+    return createStore<LockStore>()(
+      devtools(initializer, { name: devtoolsName }),
+    );
   }
 
   return createStore<LockStore>()(initializer);
@@ -137,7 +139,7 @@ export const useLockStoreRegistry = (): LockStoreRegistry => {
   const registry = useContext(LockStoreContext);
 
   if (!registry) {
-    throw new Error('Missing LockStoreProvider');
+    throw new Error("Missing LockStoreProvider");
   }
 
   return registry;
@@ -158,7 +160,7 @@ export function useLockStore<TSelected>(
   const registry = useLockStoreRegistry();
 
   if (!selector) {
-    throw new Error('Missing lock selector');
+    throw new Error("Missing lock selector");
   }
 
   return useStore(registry.getStoreApi(appKey), selector);
@@ -182,7 +184,7 @@ export function useBlockingLock(
 ): BlockingLockState {
   const locks = useLockStore(appKey, (state) => state.locks);
 
-return useMemo(() => {
+  return useMemo(() => {
     return resolveBlockingLock(locks, lockKeys) ?? unlockedState;
-}, [locks, lockKeys]);
+  }, [locks, lockKeys]);
 }

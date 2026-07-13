@@ -1,4 +1,7 @@
-import { useIlluminationState, type IlluminationKubeSchema } from "@/apps/default/hooks/states";
+import {
+  useIlluminationState,
+  type IlluminationKubeSchema,
+} from "@/apps/default/hooks/states";
 import { type z } from "zod";
 import { useThreeAffine } from "./useThreeAffine";
 
@@ -58,11 +61,12 @@ function wavelengthToHex(wavelength: number): string {
 export const IlluminationKubePlane = ({ data }: { data: IlluminationData }) => {
   const matrix = useThreeAffine(data.affine_matrix);
 
-
-  const {data: illumination} = useIlluminationState({selector: (state) => {
-    const illum = state.illuminations.find((i) => i.slot === data.slot_id);
-    return illum;
-  }  });
+  const { data: illumination } = useIlluminationState({
+    selector: (state) => {
+      const illum = state.illuminations.find((i) => i.slot === data.slot_id);
+      return illum;
+    },
+  });
 
   // Resolve light properties
   const lightColor = illumination?.wavelength
@@ -70,7 +74,7 @@ export const IlluminationKubePlane = ({ data }: { data: IlluminationData }) => {
     : "#ffffff";
 
   // Normalize intensity for visual emissive scaling (adjust divisor based on your data scale, e.g., if max intensity is 100)
-  const emissiveStrength = (illumination?.intensity ?? 0) / 100 * 2;
+  const emissiveStrength = ((illumination?.intensity ?? 0) / 100) * 2;
   const intensity = illumination?.intensity ?? 0;
 
   return (

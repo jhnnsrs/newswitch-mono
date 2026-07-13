@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext } from "react";
 
 // The lock context currently carries no members: locks are read through the lock store
 // (see `locks/store`), and this context only marks "inside a BundleProvider".
@@ -10,7 +10,7 @@ export function useLockContext(): LockContextValue {
   const context = useContext(LockContext);
 
   if (!context) {
-    throw new Error('useLockContext must be used within a BundleProvider');
+    throw new Error("useLockContext must be used within a BundleProvider");
   }
 
   return context;
