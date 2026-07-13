@@ -1,20 +1,19 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { Separator } from "@/components/ui/separator";
+} from '@/components/ui/collapsible';
+import { Separator } from '@/components/ui/separator';
 import {
   useClearExpanse,
-  useKillBenedict,
   useStartLiveView,
   useStopLiveView,
-} from "@/apps/default/hooks/actions";
-import { useCameraState, useObjectiveState } from "@/apps/default/hooks/states";
-import { useCaptureAndDownload } from "@/hooks/useCaptureAndDownload";
-import { cn } from "@/lib/utils";
+} from '@/apps/default/hooks/actions';
+import { useCameraState, useObjectiveState } from '@/apps/default/hooks/states';
+import { useCaptureAndDownload } from '@/hooks/useCaptureAndDownload';
+import { cn } from '@/lib/utils';
 import {
   Camera,
   ChevronDown,
@@ -26,12 +25,12 @@ import {
   Square,
   Sun,
   Target,
-} from "lucide-react";
-import { useState } from "react";
-import { CameraControl } from "./CameraControl";
-import { FilterBankControl } from "./FilterBankControl";
-import { IlluminationControl } from "./IlluminationControl";
-import { ObjectiveControl } from "./ObjectiveControl";
+} from 'lucide-react';
+import { useState } from 'react';
+import { CameraControl } from './CameraControl';
+import { FilterBankControl } from './FilterBankControl';
+import { IlluminationControl } from './IlluminationControl';
+import { ObjectiveControl } from './ObjectiveControl';
 
 interface SettingsSectionProps {
   title: string;
@@ -63,7 +62,7 @@ function SettingsSection({
           )}
         </div>
         <ChevronDown
-          className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")}
+          className={cn('h-4 w-4 transition-transform', isOpen && 'rotate-180')}
         />
       </CollapsibleTrigger>
       <CollapsibleContent className="px-3 pb-3 space-y-3">
@@ -109,7 +108,7 @@ export function SettingsPanel() {
         {/* Acquisition Controls */}
         <div className="flex gap-1.5">
           <Button
-            variant={isLive ? "destructive" : "default"}
+            variant={isLive ? 'destructive' : 'default'}
             size="sm"
             onClick={async () => {
               if (isLive) {
@@ -145,7 +144,7 @@ export function SettingsPanel() {
             ) : (
               <Camera className="h-3 w-3" />
             )}
-            {isDownloading ? "Save" : isCapturing ? "Snap" : "Snap"}
+            {isDownloading ? 'Save' : isCapturing ? 'Snap' : 'Snap'}
           </Button>
           <Button
             variant="secondary"

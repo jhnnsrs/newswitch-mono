@@ -1,78 +1,41 @@
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import {
   useActivateDetector,
-  useCaptureImage,
   useDeactivateDetector,
-  useStartLiveView,
-  useStopLiveView,
   useUpdateDetector,
-} from "@/apps/default/hooks/actions";
-import { useCameraState } from "@/apps/default/hooks/states";
-import { cn } from "@/lib/utils";
-import { Gauge, MonitorUp, Timer } from "lucide-react";
-import { useState } from "react";
-import { OptimisticSlider } from "../ui/optimistic_slider";
-import { ResponsiveGrid } from "../ui/responsive-grid";
+} from '@/apps/default/hooks/actions';
+import { useCameraState } from '@/apps/default/hooks/states';
+import { cn } from '@/lib/utils';
+import { Gauge, MonitorUp, Timer } from 'lucide-react';
+import { useState } from 'react';
+import { OptimisticSlider } from '../ui/optimistic_slider';
+import { ResponsiveGrid } from '../ui/responsive-grid';
 
 export function CameraControl() {
   const { data: cameraState, loading: stateLoading } = useCameraState({
     subscribe: true,
   });
-  const {
-    assign: captureImage,
-    isLoading: isCapturing,
-    isLocked: isCapturingLocked,
-  } = useCaptureImage();
-  const { assign: startLiveView, isLoading: isStartingLive } =
-    useStartLiveView();
-  const { assign: stopLiveView, isLoading: isStoppingLive } = useStopLiveView();
   const { assign: activateDetector, isLoading: isActivating } =
     useActivateDetector();
   const { assign: deactivateDetector, isLoading: isDeactivating } =
     useDeactivateDetector();
   const { call: updateDetector, isLoading: isUpdating } = useUpdateDetector();
 
-  // Local state for slider dragging
-  const [localExposures, setLocalExposures] = useState<Record<number, number>>(
-    {},
-  );
+  // Local state for slider dragging. Exposure no longer needs it: that slider commits
+  // through OptimisticSlider's onSave. Gain still uses the change/commit pair below.
   const [localGains, setLocalGains] = useState<Record<number, number>>({});
   const [selectedDetectorSlot, setSelectedDetectorSlot] = useState<
     number | null
   >(null);
 
-  const isLive = cameraState?.is_acquiring ?? false;
   const detectors = cameraState?.detectors ?? [];
-  const activeDetectors = detectors.filter((d) => d.is_active);
-  const activeSlots = new Set(activeDetectors.map((d) => d.slot));
-  const hasActiveDetectors = activeSlots.size > 0;
-
-  const getActiveDetector = (slot: number) => {
-    return detectors.find((d) => d.slot === slot && d.is_active);
-  };
 
   const handleToggleDetector = (slot: number, enabled: boolean) => {
     if (enabled) {
       activateDetector({ slot });
     } else {
       deactivateDetector({ slot });
-    }
-  };
-
-  const handleExposureChange = (slot: number, value: number) => {
-    setLocalExposures((prev) => ({ ...prev, [slot]: value }));
-  };
-
-  const handleExposureCommit = (slot: number) => {
-    const exposure = localExposures[slot];
-    if (exposure !== undefined) {
-      updateDetector({ slot, exposure_time: exposure });
-      setLocalExposures((prev) => {
-        const next = { ...prev };
-        delete next[slot];
-        return next;
-      });
     }
   };
 
@@ -92,19 +55,8 @@ export function CameraControl() {
     }
   };
 
-  const handleToggleLiveView = () => {
-    if (isLive) {
-      stopLiveView({});
-    } else {
-      startLiveView({});
-    }
-  };
-
-  const handleCapture = () => {
-    captureImage({});
-  };
-
-  const isLiveLoading = isStartingLive || isStoppingLive;
+  // Live-view and capture controls live in SettingsPanel; this panel only owns the
+  // per-detector settings.
   const isDetectorLoading = isActivating || isDeactivating;
 
   return (
@@ -114,9 +66,7 @@ export function CameraControl() {
         {detectors?.map((detector) => {
           const isActive = detector.is_active;
           const currentExposure =
-            localExposures[detector.slot] ??
-            detector.current_exposure_time ??
-            detector.min_exposure_time;
+            detector.current_exposure_time ?? detector.min_exposure_time;
           const currentGain =
             localGains[detector.slot] ??
             detector.current_gain ??
@@ -127,10 +77,10 @@ export function CameraControl() {
             <div
               key={detector.slot}
               className={cn(
-                "@container min-w-0 overflow-hidden rounded-lg border transition-all",
+                '@container min-w-0 overflow-hidden rounded-lg border transition-all',
                 isActive
-                  ? "bg-primary/5 border-primary/30"
-                  : "bg-muted/30 border-transparent",
+                  ? 'bg-primary/5 border-primary/30'
+                  : 'bg-muted/30 border-transparent',
               )}
             >
               {/* Detector Header */}
@@ -144,8 +94,8 @@ export function CameraControl() {
                   <div className="flex min-w-0 items-center gap-2">
                     <MonitorUp
                       className={cn(
-                        "h-4 w-4 shrink-0",
-                        isActive && "text-green-500",
+                        'h-4 w-4 shrink-0',
+                        isActive && 'text-green-500',
                       )}
                     />
                     <span className="truncate text-sm font-medium">
@@ -155,7 +105,7 @@ export function CameraControl() {
                   <div className="flex items-center justify-between gap-2 @[280px]:justify-end">
                     {isActive && (
                       <span className="hidden text-xs font-mono text-muted-foreground @[340px]:inline">
-                        {detector.current_exposure_time.toFixed(0)}ms /{" "}
+                        {detector.current_exposure_time.toFixed(0)}ms /{' '}
                         {detector.current_gain.toFixed(1)}×
                       </span>
                     )}
@@ -226,8 +176,8 @@ export function CameraControl() {
                                 Math.abs(
                                   (detector.current_exposure_time ?? 0) - val,
                                 ) < 0.5
-                                  ? "default"
-                                  : "outline"
+                                  ? 'default'
+                                  : 'outline'
                               }
                               onClick={() =>
                                 updateDetector({
@@ -282,8 +232,8 @@ export function CameraControl() {
                             size="sm"
                             variant={
                               Math.abs((detector.current_gain ?? 0) - val) < 0.1
-                                ? "default"
-                                : "outline"
+                                ? 'default'
+                                : 'outline'
                             }
                             onClick={() =>
                               updateDetector({ slot: detector.slot, gain: val })

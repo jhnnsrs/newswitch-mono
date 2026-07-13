@@ -1,9 +1,9 @@
-import { CalibrateLightPathDefinition } from "@/apps/default/hooks/actions";
-import { ActionButton } from "@/components/ActionButton";
-import { useCalibrationState } from "@/apps/default/hooks/states";
+import { CalibrateLightPathDefinition } from '@/apps/default/hooks/actions';
+import { ActionButton } from '@/components/ActionButton';
+import { useCalibrationState } from '@/apps/default/hooks/states';
 
 export const CalibrateLightPath = () => {
-  const { data } = useCalibrationState({ subscribe: true });
+  useCalibrationState({ subscribe: true });
 
   return (
     <div className="flex justify-center">

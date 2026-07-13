@@ -1,10 +1,9 @@
-import type { LightPathState } from "@/components/lightpathstate/LightPathStateRender";
-import { useMemo } from "react";
-import * as THREE from "three";
-import type { LightPath } from "../LightPathPlane";
+import { useMemo } from 'react';
+import * as THREE from 'three';
+import type { LightPath } from '../LightPathPlane';
 
 type KubeWithAffine = Extract<
-  LightPath["kubes"][number],
+  LightPath['kubes'][number],
   { affine_matrix: number[][] }
 >;
 
@@ -39,16 +38,16 @@ const toCenterPoint = (affineMatrix: number[][]): THREE.Vector3 => {
   return position;
 };
 
-const normalizeIntensity = (value: number | null): number => {
-  if (value === null) return 0.35;
+const normalizeIntensity = (value: number | null | undefined): number => {
+  if (value === null || value === undefined) return 0.35;
   const normalized = value > 1 ? value / 100 : value;
   return THREE.MathUtils.clamp(normalized, 0, 1);
 };
 
 const hasAffineMatrix = (
-  kube: LightPath["kubes"][number],
+  kube: LightPath['kubes'][number],
 ): kube is KubeWithAffine => {
-  return "affine_matrix" in kube;
+  return 'affine_matrix' in kube;
 };
 
 export const LightPathEdges = ({ path }: { path: LightPath }) => {

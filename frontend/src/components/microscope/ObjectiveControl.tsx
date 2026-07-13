@@ -3,12 +3,15 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { useSwitchObjective, useToggleObjective } from "@/apps/default/hooks/actions";
-import { useObjectiveState } from "@/apps/default/hooks/states";
-import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useState } from "react";
+} from '@/components/ui/tooltip';
+import {
+  useSwitchObjective,
+  useToggleObjective,
+} from '@/apps/default/hooks/actions';
+import { useObjectiveState } from '@/apps/default/hooks/states';
+import { cn } from '@/lib/utils';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
 
 export function ObjectiveControl() {
   const { data: objectiveState, loading: stateLoading } = useObjectiveState({
@@ -16,17 +19,22 @@ export function ObjectiveControl() {
   });
   const { assign: switchObjective, isLoading: isSwitching } =
     useSwitchObjective();
-  const { assign: toggleObjective, isLoading: isToggling } =
-    useToggleObjective();
+  // NOTE: only the loading flag is used - no control in this panel calls the toggle
+  // action. Kept so isLoading still reflects an in-flight toggle from elsewhere.
+  const { isLoading: isToggling } = useToggleObjective();
 
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
+  const [syncedSlot, setSyncedSlot] = useState<number | null>(null);
 
-  // Sync with server state
-  useEffect(() => {
-    if (objectiveState?.slot !== undefined) {
-      setSelectedSlot(objectiveState.slot);
-    }
-  }, [objectiveState?.slot]);
+  // Re-sync the local selection whenever the server's slot changes. This is React's
+  // "adjust state during render" pattern rather than a setState-in-effect, which triggers
+  // a second render pass (and trips react-hooks/set-state-in-effect). Same semantics:
+  // a change from the server wins over the local selection.
+  const serverSlot = objectiveState?.slot ?? null;
+  if (serverSlot !== null && serverSlot !== syncedSlot) {
+    setSyncedSlot(serverSlot);
+    setSelectedSlot(serverSlot);
+  }
 
   const handleSelectObjective = (slot: number) => {
     setSelectedSlot(slot);
@@ -92,7 +100,9 @@ export function ObjectiveControl() {
                 <div className="mt-1 grid grid-cols-1 gap-x-3 gap-y-1 text-xs text-muted-foreground @[360px]:grid-cols-3">
                   <span>NA {currentLens.numerical_aperture.toFixed(2)}</span>
                   <span>WD {currentLens.working_distance}mm</span>
-                  <span className="hidden @[360px]:inline">Bin {currentLens.binning_factor}×</span>
+                  <span className="hidden @[360px]:inline">
+                    Bin {currentLens.binning_factor}×
+                  </span>
                 </div>
               </div>
             </div>
@@ -126,13 +136,13 @@ export function ObjectiveControl() {
                       onClick={() => handleSelectObjective(lens.slot)}
                       disabled={isLoading}
                       className={cn(
-                        "relative flex min-w-[4rem] max-w-[5.5rem] flex-col items-center justify-center overflow-hidden rounded-lg border p-3 text-center transition-all",
+                        'relative flex min-w-[4rem] max-w-[5.5rem] flex-col items-center justify-center overflow-hidden rounded-lg border p-3 text-center transition-all',
                         isActive
-                          ? "bg-primary text-primary-foreground border-primary"
+                          ? 'bg-primary text-primary-foreground border-primary'
                           : isSelected
-                            ? "bg-secondary border-secondary"
-                            : "bg-muted/30 border-transparent hover:bg-muted/50",
-                        isLoading && "opacity-50 cursor-not-allowed",
+                            ? 'bg-secondary border-secondary'
+                            : 'bg-muted/30 border-transparent hover:bg-muted/50',
+                        isLoading && 'opacity-50 cursor-not-allowed',
                       )}
                     >
                       {isActive && (
@@ -142,7 +152,7 @@ export function ObjectiveControl() {
                         {lens.magnification}×
                       </span>
                       <span className="text-xs opacity-80 truncate max-w-full">
-                        {lens.name.split(" ")[0]}
+                        {lens.name.split(' ')[0]}
                       </span>
                     </button>
                   </TooltipTrigger>

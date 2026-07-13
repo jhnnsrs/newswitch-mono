@@ -1,27 +1,63 @@
 import { useViewerStore } from '@/store/viewerStore';
 import { useEffect, useMemo, useState } from 'react';
 import * as THREE from 'three';
-import { open } from 'zarrita'; 
+import { open } from 'zarrita';
+import type { DataType, NumberDataType, TypedArray } from 'zarrita';
 import type { ChunkData } from '../stores/types';
 import { createColormapTexture } from '../hooks/zarr/colormaps';
 
 // --- Helper: Memory-Efficient Texture Configuration ---
 // --- Helper: Strict WebGL2 Memory Configuration ---
-function getTextureConfig(rawData: any) {
+// zarrita's chunk data type covers bool / string / bigint arrays too; only the numeric
+// subset (TypedArray<NumberDataType>) can back a WebGL texture.
+const isNumericTypedArray = (
+  data: TypedArray<DataType>,
+): data is TypedArray<NumberDataType> =>
+  ArrayBuffer.isView(data) &&
+  !(data instanceof DataView) &&
+  !(data instanceof BigInt64Array) &&
+  !(data instanceof BigUint64Array);
+
+function getTextureConfig(rawData: TypedArray<DataType>) {
   if (rawData instanceof Uint8Array || rawData instanceof Uint8ClampedArray) {
     // 8-bit integers are natively supported in WebGL2 as R8
-    return { data: rawData, type: THREE.UnsignedByteType, internalFormat: 'R8', dataScale: 255.0 };
+    return {
+      data: rawData,
+      type: THREE.UnsignedByteType,
+      internalFormat: 'R8',
+      dataScale: 255.0,
+    };
   }
   if (rawData instanceof Float32Array) {
     // 32-bit floats are natively supported in WebGL2 as R32F
-    return { data: rawData, type: THREE.FloatType, internalFormat: 'R32F', dataScale: 1.0 };
+    return {
+      data: rawData,
+      type: THREE.FloatType,
+      internalFormat: 'R32F',
+      dataScale: 1.0,
+    };
   }
-  
+
   // FIX: Safely promote 16-bit integers to 32-bit floats.
   // This avoids the 'Invalid enum RED' crash caused by missing R16 support.
-  console.warn("Promoting TypedArray to Float32Array for strict WebGL2 compatibility.");
+  console.warn(
+    'Promoting TypedArray to Float32Array for strict WebGL2 compatibility.',
+  );
+  if (!isNumericTypedArray(rawData)) {
+    // zarrita's chunk type also covers bool/string/bigint arrays. Those were never
+    // renderable here (the old `new Float32Array(...)` would have silently produced
+    // garbage), so fail loudly instead.
+    throw new Error(
+      `Cannot render zarr chunk: unsupported data type ${rawData.constructor.name}`,
+    );
+  }
   const floatData = new Float32Array(rawData);
-  return { data: floatData, type: THREE.FloatType, internalFormat: 'R32F', dataScale: 1.0 };
+  return {
+    data: floatData,
+    type: THREE.FloatType,
+    internalFormat: 'R32F',
+    dataScale: 1.0,
+  };
 }
 
 // --- 1. Individual Chunk Renderer with Volumetric Shader ---
@@ -54,39 +90,39 @@ export const ChunkPlane = ({ chunk }: { chunk: ChunkData }) => {
 
   // 2. Data Fetching & 3D Texture Mapping
   useEffect(() => {
-    if (!isVisible && !texture) return; 
-    if (texture) return; 
+    if (!isVisible && !texture) return;
+    if (texture) return;
 
     let isMounted = true;
     const loadData = async () => {
       try {
-        const arr = await open.v3(chunk.store, { kind: "array" });
+        const arr = await open.v3(chunk.store, { kind: 'array' });
         const chunkData = await arr.getChunk([chunk.z_index, yIdx, xIdx]);
 
         if (!isMounted || !chunkData) return;
 
-        const { data, type, internalFormat, dataScale } = getTextureConfig(chunkData.data);
+        const { data, type, dataScale } = getTextureConfig(chunkData.data);
 
         console.log(Math.max(...data), Math.min(...data));
 
         const tex = new THREE.Data3DTexture(
-          data, 
+          data,
           chunkWidth,
           chunkHeight,
-          chunkZSize 
+          chunkZSize,
         );
-        
+
         tex.format = THREE.RedFormat;
         tex.type = type;
-        
-        tex.minFilter = THREE.LinearFilter; 
+
+        tex.minFilter = THREE.LinearFilter;
         tex.magFilter = THREE.LinearFilter;
         tex.wrapS = THREE.ClampToEdgeWrapping;
         tex.wrapT = THREE.ClampToEdgeWrapping;
-        tex.wrapR = THREE.ClampToEdgeWrapping; 
-        tex.flipY = false; 
+        tex.wrapR = THREE.ClampToEdgeWrapping;
+        tex.flipY = false;
         tex.needsUpdate = true;
-        
+
         setDataScale(dataScale);
         setTexture(tex);
       } catch (error) {
@@ -99,7 +135,16 @@ export const ChunkPlane = ({ chunk }: { chunk: ChunkData }) => {
     return () => {
       isMounted = false;
     };
-  }, [chunk, isVisible, chunkWidth, chunkHeight, chunkZSize, yIdx, xIdx, texture]);
+  }, [
+    chunk,
+    isVisible,
+    chunkWidth,
+    chunkHeight,
+    chunkZSize,
+    yIdx,
+    xIdx,
+    texture,
+  ]);
 
   // 3. Cleanup
   useEffect(() => {
@@ -113,7 +158,7 @@ export const ChunkPlane = ({ chunk }: { chunk: ChunkData }) => {
   // 4. Physical 3D Placement
   const xPos = xIdx * chunkWidth + chunkWidth / 2;
   const yPos = -(yIdx * chunkHeight) - chunkHeight / 2;
-  const zPos = chunk.z_index * chunkZSize + chunkZSize / 2; 
+  const zPos = chunk.z_index * chunkZSize + chunkZSize / 2;
 
   if (!texture) {
     return (
@@ -129,21 +174,23 @@ export const ChunkPlane = ({ chunk }: { chunk: ChunkData }) => {
       <mesh scale={[chunkWidth, chunkHeight, chunkZSize]} renderOrder={1}>
         <boxGeometry args={[1, 1, 1]} />
         <shaderMaterial
-          glslVersion={THREE.GLSL3} 
+          glslVersion={THREE.GLSL3}
           transparent={true}
           blending={THREE.AdditiveBlending}
-          depthWrite={false} 
+          depthWrite={false}
           depthTest={true}
-          side={THREE.BackSide} 
+          side={THREE.BackSide}
           uniforms={{
             colorTexture: { value: texture },
-            colormapTexture: { value: createColormapTexture(
-              Array.from({ length: 256 }, (_, i) => [i / 255, 0, 0]),
-            ) },
+            colormapTexture: {
+              value: createColormapTexture(
+                Array.from({ length: 256 }, (_, i) => [i / 255, 0, 0]),
+              ),
+            },
             minValue: { value: chunk.array_metadata?.min_value ?? 0 },
             maxValue: { value: chunk.array_metadata?.max_value ?? 18 },
-            opacity: { value: 1.0 }, 
-            gamma: { value: 1.0 },   
+            opacity: { value: 1.0 },
+            gamma: { value: 1.0 },
             useDiscrete: { value: 0.0 },
             dataScale: { value: dataScale },
           }}
@@ -239,10 +286,17 @@ export const ChunkPlane = ({ chunk }: { chunk: ChunkData }) => {
       </mesh>
 
       {/* Debug Wireframe Overlay */}
-      {isDebug && <mesh scale={[chunkWidth, chunkHeight, chunkZSize]}>
-        <boxGeometry args={[1, 1, 1]} />
-        <meshBasicMaterial color="cyan" wireframe={true} opacity={0.3} transparent={true} />
-      </mesh>}
+      {isDebug && (
+        <mesh scale={[chunkWidth, chunkHeight, chunkZSize]}>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshBasicMaterial
+            color="cyan"
+            wireframe={true}
+            opacity={0.3}
+            transparent={true}
+          />
+        </mesh>
+      )}
     </group>
   );
 };

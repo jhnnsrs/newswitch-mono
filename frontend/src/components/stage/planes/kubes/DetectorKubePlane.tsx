@@ -1,14 +1,13 @@
-import type { DetectorKubeStateSchema } from "@/apps/default/hooks/states/ExpanseState";
-import { type z } from "zod";
-import { useThreeAffine } from "./useThreeAffine";
-import { useCameraState } from "@/apps/default/hooks/states";
+import type { DetectorKubeStateSchema } from '@/apps/default/hooks/states/ExpanseState';
+import { type z } from 'zod';
+import { useThreeAffine } from './useThreeAffine';
 
 type DetectorData = z.infer<typeof DetectorKubeStateSchema>;
 
 export const DetectorKubePlane = ({ data }: { data: DetectorData }) => {
   // Use a group to hold the entire detector structure at the state coordinates
   const matrix = useThreeAffine(data.affine_matrix);
-  
+
   return (
     <group matrix={matrix} matrixAutoUpdate={false}>
       {/* Inner group rotates the Y-aligned detector to point down the Z-axis by default */}

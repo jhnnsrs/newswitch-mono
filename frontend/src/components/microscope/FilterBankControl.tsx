@@ -1,34 +1,34 @@
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { useSwitchFilter, useToggleFilter } from "@/apps/default/hooks/actions";
-import { useFilterBankState } from "@/apps/default/hooks/states";
-import { cn } from "@/lib/utils";
-import { RotateCw } from "lucide-react";
-import { ResponsiveGrid } from "../ui/responsive-grid";
+} from '@/components/ui/tooltip';
+import { useSwitchFilter, useToggleFilter } from '@/apps/default/hooks/actions';
+import { useFilterBankState } from '@/apps/default/hooks/states';
+import { cn } from '@/lib/utils';
+import { RotateCw } from 'lucide-react';
+import { ResponsiveGrid } from '../ui/responsive-grid';
 
 // Color mapping for filter wavelengths
 const getWavelengthColor = (wavelength: number): string => {
-  if (wavelength < 420) return "bg-violet-500";
-  if (wavelength < 500) return "bg-blue-500";
-  if (wavelength < 570) return "bg-green-500";
-  if (wavelength < 600) return "bg-yellow-500";
-  if (wavelength < 650) return "bg-orange-500";
-  return "bg-red-500";
+  if (wavelength < 420) return 'bg-violet-500';
+  if (wavelength < 500) return 'bg-blue-500';
+  if (wavelength < 570) return 'bg-green-500';
+  if (wavelength < 600) return 'bg-yellow-500';
+  if (wavelength < 650) return 'bg-orange-500';
+  return 'bg-red-500';
 };
 
 const getWavelengthTextColor = (wavelength: number): string => {
-  if (wavelength < 420) return "text-violet-400";
-  if (wavelength < 500) return "text-blue-400";
-  if (wavelength < 570) return "text-green-400";
-  if (wavelength < 600) return "text-yellow-400";
-  if (wavelength < 650) return "text-orange-400";
-  return "text-red-400";
+  if (wavelength < 420) return 'text-violet-400';
+  if (wavelength < 500) return 'text-blue-400';
+  if (wavelength < 570) return 'text-green-400';
+  if (wavelength < 600) return 'text-yellow-400';
+  if (wavelength < 650) return 'text-orange-400';
+  return 'text-red-400';
 };
 
 export function FilterBankControl() {
@@ -40,7 +40,6 @@ export function FilterBankControl() {
 
   const filters = filterBankState?.filters ?? [];
   const currentSlot = filterBankState?.current_slot;
-  const activeFilter = filters.find((f) => f.slot === currentSlot);
 
   const handleSelectFilter = (slot: number) => {
     if (slot !== currentSlot) {
@@ -65,10 +64,10 @@ export function FilterBankControl() {
             <div
               key={filter.slot}
               className={cn(
-                "@container min-w-0 overflow-hidden cursor-pointer rounded-lg border p-3 transition-all",
+                '@container min-w-0 overflow-hidden cursor-pointer rounded-lg border p-3 transition-all',
                 isActive
-                  ? "bg-primary/5 border-primary/30"
-                  : "bg-muted/30 border-transparent hover:bg-muted/50",
+                  ? 'bg-primary/5 border-primary/30'
+                  : 'bg-muted/30 border-transparent hover:bg-muted/50',
               )}
               onClick={() => handleSelectFilter(filter.slot)}
             >
@@ -80,9 +79,9 @@ export function FilterBankControl() {
                       <TooltipTrigger>
                         <div
                           className={cn(
-                            "w-3 h-3 rounded-full",
+                            'w-3 h-3 rounded-full',
                             getWavelengthColor(filter.center_wavelength),
-                            isActive && "animate-pulse",
+                            isActive && 'animate-pulse',
                           )}
                         />
                       </TooltipTrigger>
@@ -91,10 +90,12 @@ export function FilterBankControl() {
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                  <span className="truncate text-sm font-medium">{filter.name}</span>
+                  <span className="truncate text-sm font-medium">
+                    {filter.name}
+                  </span>
                   <span
                     className={cn(
-                      "hidden text-xs font-mono @[320px]:inline",
+                      'hidden text-xs font-mono @[320px]:inline',
                       getWavelengthTextColor(filter.center_wavelength),
                     )}
                   >
@@ -143,7 +144,7 @@ export function FilterBankControl() {
           onClick={handleToggle}
           disabled={isLoading}
         >
-          <RotateCw className={cn("h-4 w-4", isToggling && "animate-spin")} />
+          <RotateCw className={cn('h-4 w-4', isToggling && 'animate-spin')} />
           Cycle to Next Filter
         </Button>
       )}

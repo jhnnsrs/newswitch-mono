@@ -1,11 +1,11 @@
-import { useMoveStage } from "@/apps/default/hooks/actions";
-import { useStageState } from "@/apps/default/hooks/states/StageState";
-import { Html, Line } from "@react-three/drei";
-import type { Vector3 } from "@react-three/fiber";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { useModeStore } from "@/store/modeStore";
+import { useMoveStage } from '@/apps/default/hooks/actions';
+import { useStageState } from '@/apps/default/hooks/states/StageState';
+import { Html, Line } from '@react-three/drei';
+import { useState } from 'react';
+import type { Vector3 } from 'three';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { useModeStore } from '@/store/modeStore';
 
 /**
  * Crosshair (Fadenkreuz) Component
@@ -45,8 +45,12 @@ const SelectionCrosshair = ({ position }: { position: Vector3 }) => {
 
 /**
  * ClickWidget: Context menu for world-space interaction.
+ *
+ * TODO: not wired up - StagePositioner only renders the SelectionCrosshair for the
+ * current clickPoint; this context menu is never mounted. Exported so the unfinished
+ * wiring is preserved rather than deleted.
  */
-const ClickWidget = ({
+export const ClickWidget = ({
   position,
   onClose,
 }: {
@@ -110,7 +114,7 @@ export const StagePositioner = () => {
   const { data: stageState } = useStageState({ subscribe: true });
   const { call: moveToPosition } = useMoveStage();
 
-  if (interactionMode !== "MOVE") return null;
+  if (interactionMode !== 'MOVE') return null;
 
   return (
     <group>

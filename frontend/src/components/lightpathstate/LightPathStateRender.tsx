@@ -1,19 +1,18 @@
-import React, { useEffect } from "react";
+import React, { useEffect } from 'react';
 import {
   ReactFlow,
   Background,
-  Controls,
   useNodesState,
   useEdgesState,
   type Node,
   type Edge,
-} from "@xyflow/react";
-import "@xyflow/react/dist/style.css";
-import { type z } from "zod";
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+import { type z } from 'zod';
 
-import type { LightPathStateSchema } from "@/apps/default/hooks/states/ExpanseState";
-import { getLayoutedElements } from "./layoutUtils";
-import { nodeTypes } from "./nodes";
+import type { LightPathStateSchema } from '@/apps/default/hooks/states/ExpanseState';
+import { getLayoutedElements } from './layoutUtils';
+import { nodeTypes } from './nodes';
 
 export type LightPathState = z.infer<typeof LightPathStateSchema>;
 
@@ -31,10 +30,14 @@ export const LightPathStateRender: React.FC<OpticalPathViewerProps> = ({
     const kubes = path.kubes;
     const rawEdges = path.edges;
 
-    // 1. Create initial React Flow Nodes, linking schema data and brand type
+    // 1. Create initial React Flow Nodes, keyed by the kube's runtime discriminant.
+    // This was `kube.__brand`, which is a zod brand: type-level only, undefined at
+    // runtime - so every node got type undefined and React Flow fell back to its
+    // default renderer instead of the custom nodes in ./nodes. The nodeTypes keys
+    // (objective_kube_state, detector_kube_state, ...) are exactly the __identifier values.
     const initialNodes: Node[] = kubes.map((kube) => ({
       id: kube.kube_id,
-      type: kube.__brand,
+      type: kube.__identifier,
       position: { x: 0, y: 0 }, // Dagre overwrites this instantly
       data: kube,
     }));
@@ -50,14 +53,14 @@ export const LightPathStateRender: React.FC<OpticalPathViewerProps> = ({
           ? `${e.intensity}%`
           : undefined,
       animated: true,
-      style: { stroke: "#555", strokeWidth: 2 },
+      style: { stroke: '#555', strokeWidth: 2 },
     }));
 
     // 3. Apply Dagre Layout
     const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
       initialNodes,
       initialEdges,
-      "LR",
+      'LR',
     );
 
     setNodes(layoutedNodes);
@@ -67,8 +70,8 @@ export const LightPathStateRender: React.FC<OpticalPathViewerProps> = ({
   return (
     <div
       style={{
-        width: "100%",
-        height: "100%",
+        width: '100%',
+        height: '100%',
       }}
     >
       <ReactFlow

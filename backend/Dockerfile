@@ -25,9 +25,9 @@ RUN uv sync --frozen
 
 EXPOSE 8099
 
-# No --reload: create_app() takes a required config arg, so there is no
-# module-level ASGI app for uvicorn to re-import.
-CMD ["python", "test.py"]
+# main.py exposes a module-level `app`, which is what lets --reload re-import on edit.
+# The source dir is bind-mounted by compose, so edits on the host reload the container.
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8099", "--reload"]
 
 # python:slim has no curl, so probe with urllib instead
 HEALTHCHECK --interval=5s --timeout=5s --retries=30 --start-period=30s \

@@ -1,17 +1,21 @@
-import { useCameraState } from "@/apps/default/hooks/states/CameraState";
-import type { DetectorKubeSchema } from "@/apps/default/hooks/states/LightPathState";
-import { type z } from "zod";
-import { useThreeAffine } from "./useThreeAffine";
+import { useCameraState } from '@/apps/default/hooks/states/CameraState';
+import type { DetectorKubeSchema } from '@/apps/default/hooks/states/LightPathState';
+import { type z } from 'zod';
+import { useThreeAffine } from './useThreeAffine';
 
 type DetectorData = z.infer<typeof DetectorKubeSchema>;
 
 export const DetectorKubePlane = ({ data }: { data: DetectorData }) => {
   // Use a group to hold the entire detector structure at the state coordinates
   const matrix = useThreeAffine(data.affine_matrix);
-   const gain = useCameraState({selector: (state) => {
+  // TODO: not wired up - the detector gain is computed but never rendered (e.g. as a
+  // material tint or label). Hook call kept for the subscription.
+  useCameraState({
+    selector: (state) => {
       const detector = state.detectors.find((d) => d.slot === data.slot_id);
       return detector?.current_gain ?? 0;
-    }});
+    },
+  });
 
   return (
     <group matrix={matrix} matrixAutoUpdate={false}>

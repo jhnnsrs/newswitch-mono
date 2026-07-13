@@ -1,13 +1,24 @@
-import { useObjectiveState, type ObjectiveTurretKubeSchema } from "@/apps/default/hooks/states";
-import { type z } from "zod";
-import { useThreeAffine } from "./useThreeAffine";
+import {
+  useObjectiveState,
+  type ObjectiveTurretKubeSchema,
+} from '@/apps/default/hooks/states';
+import { type z } from 'zod';
+import { useThreeAffine } from './useThreeAffine';
 
 type ObjectiveTurretData = z.infer<typeof ObjectiveTurretKubeSchema>;
 
-export const ObjectiveTurretKubePlane = ({ data }: { data: ObjectiveTurretData }) => {
+export const ObjectiveTurretKubePlane = ({
+  data,
+}: {
+  data: ObjectiveTurretData;
+}) => {
   // We use a group to hold the stacked cylinder parts together.
   // The entire group is positioned at the state coordinates.
-  const mountedLens = useObjectiveState({selector: (s) => s.mounted_lenses.find((o) => o.slot === s.slot)});
+  // TODO: not wired up - the mounted lens is subscribed to but never rendered
+  // (e.g. as a magnification label / colour band). Hook call kept for the subscription.
+  useObjectiveState({
+    selector: (s) => s.mounted_lenses.find((o) => o.slot === s.slot),
+  });
   const matrix = useThreeAffine(data.affine_matrix);
 
   return (

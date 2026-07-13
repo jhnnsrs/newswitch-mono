@@ -20,4 +20,14 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    // Vendored shadcn/ui components. Exporting a cva variants const alongside the
+    // component is the idiomatic shadcn shape, and these files are meant to be
+    // re-synced from upstream - so relax the rules rather than edit them.
+    files: ["src/components/ui/**"],
+    rules: {
+      "react-refresh/only-export-components": "off",
+      "react-hooks/purity": "off",
+    },
+  },
 ]);

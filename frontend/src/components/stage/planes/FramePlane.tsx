@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import type { Frame } from '../hooks/zarr/types';
 import type { ChunkData } from '../stores/types';
 import { mapDTypeToMinMax } from '../stores/utils';
-import { ChunkMesh } from './ChunkVolume';
+import { ChunkPlane } from './ChunkPlane';
 import { redColormap } from '../hooks/zarr/colormaps';
 import { useSelectionStore } from '@/store/imageStore';
 
@@ -72,7 +72,6 @@ const InvertedHullOutline = ({
   return <group ref={groupRef}>{children}</group>;
 };
 
-
 // --- 2. The Main Frame Plane ---
 
 export const FramePlane = ({ frame }: { frame: Frame }) => {
@@ -89,10 +88,12 @@ export const FramePlane = ({ frame }: { frame: Frame }) => {
     const initializeZarr = async () => {
       try {
         const store = storeBuilder(frame);
-        const arr = await open.v3(store, { kind: "array" });
+        const arr = await open.v3(store, { kind: 'array' });
 
         if (!isMounted) return;
-        console.log(`Initialized Zarr for Frame ${frame.id}: shape=${arr.shape}, dtype=${arr.dtype}`);
+        console.log(
+          `Initialized Zarr for Frame ${frame.id}: shape=${arr.shape}, dtype=${arr.dtype}`,
+        );
 
         const shape = arr.shape;
         const dtype = arr.dtype;
@@ -122,7 +123,7 @@ export const FramePlane = ({ frame }: { frame: Frame }) => {
                 max_value: frame.metadata.max_value ?? max_val,
                 metadata: frame.metadata,
                 array_metadata: frame.array_metadata,
-                colormapTexture: colormapTexture
+                colormapTexture: colormapTexture,
               });
             }
           }
@@ -145,42 +146,70 @@ export const FramePlane = ({ frame }: { frame: Frame }) => {
   const affineMatrix = useMemo(() => {
     const mat = new THREE.Matrix4();
     if (!frame.metadata.affine_matrix) return mat;
-    
+
     const rawMat = frame.metadata.affine_matrix;
     if (rawMat.length === 3) {
       mat.set(
-        rawMat[0][0], rawMat[0][1], 0, rawMat[0][2],
-        rawMat[1][0], rawMat[1][1], 0, rawMat[1][2],
-        0, 0, 1, 0,
-        rawMat[2][0], rawMat[2][1], 0, rawMat[2][2]
+        rawMat[0][0],
+        rawMat[0][1],
+        0,
+        rawMat[0][2],
+        rawMat[1][0],
+        rawMat[1][1],
+        0,
+        rawMat[1][2],
+        0,
+        0,
+        1,
+        0,
+        rawMat[2][0],
+        rawMat[2][1],
+        0,
+        rawMat[2][2],
       );
     } else if (rawMat.length === 4) {
       mat.set(
-        rawMat[0][0], rawMat[0][1], rawMat[0][2], rawMat[0][3],
-        rawMat[1][0], rawMat[1][1], rawMat[1][2], rawMat[1][3],
-        rawMat[2][0], rawMat[2][1], rawMat[2][2], rawMat[2][3],
-        rawMat[3][0], rawMat[3][1], rawMat[3][2], rawMat[3][3]
+        rawMat[0][0],
+        rawMat[0][1],
+        rawMat[0][2],
+        rawMat[0][3],
+        rawMat[1][0],
+        rawMat[1][1],
+        rawMat[1][2],
+        rawMat[1][3],
+        rawMat[2][0],
+        rawMat[2][1],
+        rawMat[2][2],
+        rawMat[2][3],
+        rawMat[3][0],
+        rawMat[3][1],
+        rawMat[3][2],
+        rawMat[3][3],
       );
     }
     return mat;
   }, [frame]);
 
   if (!chunks) {
-    return null; 
+    return null;
   }
 
   return (
-    <group matrix={affineMatrix} matrixAutoUpdate={false} onClick={(e) => {
-                e.stopPropagation();
-                if (isSelected) {
-                  setSelectedFrameId(null);
-                } else {
-                  setSelectedFrameId(frame.id);
-                }
-              }}>
+    <group
+      matrix={affineMatrix}
+      matrixAutoUpdate={false}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (isSelected) {
+          setSelectedFrameId(null);
+        } else {
+          setSelectedFrameId(frame.id);
+        }
+      }}
+    >
       <InvertedHullOutline enabled={isSelected}>
         {chunks.map((chunk) => (
-          <ChunkMesh key={chunk.chunk_key} chunk={chunk} />
+          <ChunkPlane key={chunk.chunk_key} chunk={chunk} />
         ))}
       </InvertedHullOutline>
     </group>

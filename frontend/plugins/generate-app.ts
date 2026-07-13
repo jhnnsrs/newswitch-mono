@@ -80,13 +80,10 @@ type StateSchemaDefinition = {
   ports: SchemaPort[];
 };
 
-
 type StateSchemaImplementation = {
   definition: StateSchemaDefinition;
   interface: string;
-}
-
-
+};
 
 type StatesSchema = {
   states: Record<string, StateSchemaImplementation>;
@@ -238,12 +235,23 @@ const pruneDir = (dirPath: string, expectedFileNames: Set<string>) => {
   }
 };
 
+// Single source of truth: read the repo's .prettierrc rather than hardcoding options here.
+// prettier.format() does NOT resolve config from disk on its own, so a divergence between
+// this and the repo config would make the formatter and the generator rewrite each other
+// forever - and the CI drift check would never be clean.
+let prettierOptions: Promise<prettier.Options> | null = null;
+
+const getPrettierOptions = () => {
+  prettierOptions ??= prettier.resolveConfig(BLOK_PATH).then((resolved) => ({
+    ...(resolved ?? { singleQuote: true, trailingComma: 'all' as const }),
+    parser: 'typescript' as const,
+  }));
+
+  return prettierOptions;
+};
+
 const formatTypeScript = async (content: string) =>
-  prettier.format(content, {
-    parser: 'typescript',
-    singleQuote: true,
-    trailingComma: 'all',
-  });
+  prettier.format(content, await getPrettierOptions());
 
 const formatAndWrite = async (filePath: string, content: string) => {
   const formatted = await formatTypeScript(content);
@@ -256,7 +264,10 @@ const formatAndWriteJson = (filePath: string, value: unknown) => {
 
 const readJsonFile = (filePath: string) => {
   try {
-    return JSON.parse(fs.readFileSync(filePath, 'utf-8')) as Record<string, unknown>;
+    return JSON.parse(fs.readFileSync(filePath, 'utf-8')) as Record<
+      string,
+      unknown
+    >;
   } catch {
     return null;
   }
@@ -303,7 +314,9 @@ const normalizeApps = (
 
     const normalizedName = explicitKey ? legacyName : undefined;
     const symbolPrefix =
-      key === DEFAULT_APP_KEY ? undefined : normalizeOptionalString(toPascal(key));
+      key === DEFAULT_APP_KEY
+        ? undefined
+        : normalizeOptionalString(toPascal(key));
 
     return {
       ...app,
@@ -365,10 +378,7 @@ const renderDescription = (description?: string) => {
   return `/** ${description} */\n`;
 };
 
-const appendValidators = (
-  baseSchemaCode: string,
-  fields: SchemaPort[],
-) => {
+const appendValidators = (baseSchemaCode: string, fields: SchemaPort[]) => {
   const fieldsWithValidators = fields.filter(
     (field) => field.validators && field.validators.length > 0 && field.key,
   );
@@ -392,7 +402,9 @@ const appendValidators = (
 
           const contextProperties = [
             `self: val['${fieldName}']`,
-            ...dependencies.map((dependency) => `${dependency}: val['${dependency}']`),
+            ...dependencies.map(
+              (dependency) => `${dependency}: val['${dependency}']`,
+            ),
           ].join(', ');
 
           return `
@@ -423,7 +435,9 @@ const appendValidators = (
 const getExportEntries = (code: string): ExportEntry[] => {
   const exportEntries = new Map<string, ExportEntry>();
 
-  for (const match of code.matchAll(/export\s+(const|type|function)\s+(\w+)/g)) {
+  for (const match of code.matchAll(
+    /export\s+(const|type|function)\s+(\w+)/g,
+  )) {
     const [, rawKind, name] = match;
     exportEntries.set(name, {
       name,
@@ -510,7 +524,8 @@ function mapPortToZod(
 ): string {
   let base = 'z.any()';
   const isValidKey = !!port.key && port.key !== '...' && port.key !== '';
-  const nodeName = port.identifier || (isValidKey ? (port.key as string) : fallbackName);
+  const nodeName =
+    port.identifier || (isValidKey ? (port.key as string) : fallbackName);
 
   switch (port.kind) {
     case 'FLOAT':
@@ -558,7 +573,11 @@ function mapPortToZod(
         const childFallback = nodeName.endsWith('s')
           ? nodeName.slice(0, -1)
           : `${nodeName}Item`;
-        const elementType = mapPortToZod(port.children[0], context, childFallback);
+        const elementType = mapPortToZod(
+          port.children[0],
+          context,
+          childFallback,
+        );
         base = `z.array(${elementType})`;
       } else {
         base = 'z.array(z.any())';
@@ -568,7 +587,11 @@ function mapPortToZod(
     case 'DICT': {
       if (port.children && port.children.length > 0) {
         const childFallback = `${nodeName}Value`;
-        const valueType = mapPortToZod(port.children[0], context, childFallback);
+        const valueType = mapPortToZod(
+          port.children[0],
+          context,
+          childFallback,
+        );
         base = `z.record(z.string(), ${valueType})`;
       } else {
         base = 'z.record(z.string(), z.any())';
@@ -585,7 +608,9 @@ function mapPortToZod(
       if (!context.subSchemas.has(modelName)) {
         const children = port.children ?? [];
         const injectedBrand = `  __identifier: z.literal('${brandName}').default('${brandName}')`;
-        const schemaCode = buildObjectSchemaCode(children, context, [injectedBrand]);
+        const schemaCode = buildObjectSchemaCode(children, context, [
+          injectedBrand,
+        ]);
         const brandedSchemaCode = port.identifier
           ? `${schemaCode}.brand('${port.identifier}')`
           : schemaCode;
@@ -608,7 +633,9 @@ function mapPortToZod(
           `export const ${modelName} = ${describedSchemaCode};
 export type ${modelTypeName} = z.input<typeof ${modelName}>;
 export type ${modelTypeName}Output = z.infer<typeof ${modelName}>;${
-            context.symbolPrefix ? `\nexport const ${rawModelName} = ${modelName};` : ''
+            context.symbolPrefix
+              ? `\nexport const ${rawModelName} = ${modelName};`
+              : ''
           }`,
         );
       }
@@ -631,7 +658,9 @@ export type ${modelTypeName}Output = z.infer<typeof ${modelName}>;${
           context.subSchemas.set(
             unionName,
             `export const ${unionName} = createIndexedUnion([\n  ${types.join(',\n  ')}\n]);${
-              context.symbolPrefix ? `\nexport const ${rawUnionName} = ${unionName};` : ''
+              context.symbolPrefix
+                ? `\nexport const ${rawUnionName} = ${unionName};`
+                : ''
             }`,
           );
         } else {
@@ -654,7 +683,6 @@ export type ${modelTypeName}Output = z.infer<typeof ${modelName}>;${
   if (port.nullable) {
     base = `${base}.nullable().optional()`;
   }
-
 
   return base;
 }
@@ -717,20 +745,25 @@ export type ${baseName}Return = ${returnTypeName};`
 export const ${baseName}Definition = ${definitionName};`
     : '';
 
-  const optimisticExports = (implementation.optimistics ?? []).map((optimistic) => {
-    const optimisticName = `Optimistic${toCamel(optimistic.state)}`;
-    const generatedOptimisticName = withSymbolPrefix(optimisticName, symbolPrefix);
-    const optimisticExport = generateOptimisticState(optimistic).replace(
-      `export const ${optimisticName}`,
-      `export const ${generatedOptimisticName}`,
-    );
+  const optimisticExports = (implementation.optimistics ?? []).map(
+    (optimistic) => {
+      const optimisticName = `Optimistic${toCamel(optimistic.state)}`;
+      const generatedOptimisticName = withSymbolPrefix(
+        optimisticName,
+        symbolPrefix,
+      );
+      const optimisticExport = generateOptimisticState(optimistic).replace(
+        `export const ${optimisticName}`,
+        `export const ${generatedOptimisticName}`,
+      );
 
-    if (!symbolPrefix) {
-      return optimisticExport;
-    }
+      if (!symbolPrefix) {
+        return optimisticExport;
+      }
 
-    return `${optimisticExport}\n\nexport const ${optimisticName} = ${generatedOptimisticName};`;
-  });
+      return `${optimisticExport}\n\nexport const ${optimisticName} = ${generatedOptimisticName};`;
+    },
+  );
 
   return `
 import { z } from 'zod';
@@ -768,8 +801,12 @@ ${definitionAlias}
 export const ${qualifiedHookName} = () => {
   return useAction(${definitionName});
 };
-${qualifiedHookName !== hookName ? `
-export const ${hookName} = ${qualifiedHookName};` : ''}
+${
+  qualifiedHookName !== hookName
+    ? `
+export const ${hookName} = ${qualifiedHookName};`
+    : ''
+}
 
 ${optimisticExports.length > 0 ? `/** Optimistic state hooks for ${key} */` : ''}
 ${optimisticExports.join('\n')}
@@ -796,7 +833,8 @@ const generateStateContent = (
   const definitionName = `${generatedName}Definition`;
   const fields = (stateDefinition.definition.ports ?? [])
     .map(
-      (port) => `  ${toObjectPropertyKey(port.key ?? 'value')}: ${mapPortToZod(port, context, port.key ?? 'State')}`,
+      (port) =>
+        `  ${toObjectPropertyKey(port.key ?? 'value')}: ${mapPortToZod(port, context, port.key ?? 'State')}`,
     )
     .join(',\n');
   const subSchemasCode = Array.from(context.subSchemas.values()).join('\n\n');
@@ -840,8 +878,12 @@ ${definitionAlias}
  * Hook to sync ${key}
  */
 export const ${qualifiedHookName} = buildUseState<${typeName}>(${definitionName});
-${qualifiedHookName !== hookName ? `
-export const ${hookName} = ${qualifiedHookName};` : ''}
+${
+  qualifiedHookName !== hookName
+    ? `
+export const ${hookName} = ${qualifiedHookName};`
+    : ''
+}
 `;
 };
 
@@ -879,8 +921,12 @@ export const ${definitionName}: LockDefinition<'${key}'> = {
 export const ${qualifiedHookName} = (options?: UseLockOptions) => {
   return useLock<'${key}'>(${definitionName}, options);
 };
-${qualifiedHookName !== hookName ? `
-export const ${hookName} = ${qualifiedHookName};` : ''}${compatibilityAliases}
+${
+  qualifiedHookName !== hookName
+    ? `
+export const ${hookName} = ${qualifiedHookName};`
+    : ''
+}${compatibilityAliases}
 `;
 };
 
@@ -914,7 +960,10 @@ const generateActionsDirectory = async (options: {
 
   const emitted = new Set<string>(['utils.ts', 'index.ts']);
   const fileExports = new Map<string, ExportEntry[]>();
-  fileExports.set('utils', getExportEntries(await formatTypeScript(SHARED_UTILS_CODE)));
+  fileExports.set(
+    'utils',
+    getExportEntries(await formatTypeScript(SHARED_UTILS_CODE)),
+  );
   const generatedActions: ActionModuleEntry[] = [];
 
   for (const [key, implementation] of sortedEntries(schema.implementations)) {
@@ -951,7 +1000,9 @@ const generateActionsDirectory = async (options: {
     )
     .join('\n');
   const definitionEntries = generatedActions
-    .map(({ exportName, definitionName }) => `  ${exportName}: ${definitionName},`)
+    .map(
+      ({ exportName, definitionName }) => `  ${exportName}: ${definitionName},`,
+    )
     .join('\n');
   const barrelExports = buildBarrelExports(fileExports);
   const indexCode = `import type { ActionDefinition } from '${indexImportPathToUseAction}';
@@ -995,7 +1046,10 @@ const generateStatesDirectory = async (options: {
 
   const emitted = new Set<string>(['utils.ts', 'index.ts']);
   const fileExports = new Map<string, ExportEntry[]>();
-  fileExports.set('utils', getExportEntries(await formatTypeScript(SHARED_UTILS_CODE)));
+  fileExports.set(
+    'utils',
+    getExportEntries(await formatTypeScript(SHARED_UTILS_CODE)),
+  );
   const generatedStates: StateModuleEntry[] = [];
 
   for (const [key, stateDefinition] of sortedEntries(schema.states)) {
@@ -1031,7 +1085,9 @@ const generateStatesDirectory = async (options: {
     )
     .join('\n');
   const definitionEntries = generatedStates
-    .map(({ exportName, definitionName }) => `  ${exportName}: ${definitionName},`)
+    .map(
+      ({ exportName, definitionName }) => `  ${exportName}: ${definitionName},`,
+    )
     .join('\n');
   const barrelExports = buildBarrelExports(fileExports);
   const indexCode = `
@@ -1119,7 +1175,9 @@ const generateLocksDirectory = async (options: {
     )
     .join('\n');
   const definitionEntries = generatedLocks
-    .map(({ exportName, definitionName }) => `  ${exportName}: ${definitionName},`)
+    .map(
+      ({ exportName, definitionName }) => `  ${exportName}: ${definitionName},`,
+    )
     .join('\n');
   const barrelExports = buildBarrelExports(fileExports);
   const indexCode = `
@@ -1223,20 +1281,30 @@ export const ${qualifiedHookName} = <TSelected>(
 ): TSelected => useBaseLockStore('${appKey}', selector);${aliasExport}`;
 };
 
-const isHooksSchema = (value: Record<string, unknown> | null): value is HooksSchema =>
-  !!value && typeof value.implementations === 'object' && value.implementations !== null;
+const isHooksSchema = (
+  value: Record<string, unknown> | null,
+): value is HooksSchema =>
+  !!value &&
+  typeof value.implementations === 'object' &&
+  value.implementations !== null;
 
-const isStatesSchema = (value: Record<string, unknown> | null): value is StatesSchema =>
+const isStatesSchema = (
+  value: Record<string, unknown> | null,
+): value is StatesSchema =>
   !!value && typeof value.states === 'object' && value.states !== null;
 
-const isLocksSchema = (value: Record<string, unknown> | null): value is LocksSchema =>
+const isLocksSchema = (
+  value: Record<string, unknown> | null,
+): value is LocksSchema =>
   !!value && typeof value.locks === 'object' && value.locks !== null;
 
 export default function generateAppsPlugin(
   options: GenerateAppsPluginOptions,
 ): Plugin {
   const normalizedApps = normalizeApps(options.apps);
-  const appsDir = options.baseDir ? path.resolve(options.baseDir) : DEFAULT_APPS_DIR;
+  const appsDir = options.baseDir
+    ? path.resolve(options.baseDir)
+    : DEFAULT_APPS_DIR;
   const rekuestImportPath =
     options.rekuestImportPath ?? DEFAULT_REKUEST_IMPORT_PATH;
 
@@ -1253,145 +1321,174 @@ export default function generateAppsPlugin(
   };
 
   async function generate() {
-      ensureDir(appsDir);
+    ensureDir(appsDir);
 
-      const packageData = readJsonFile(PACKAGE_JSON_PATH) ?? {};
-      const scripts =
-        (packageData.scripts as Record<string, string> | undefined) ?? {};
-      const previousBlok = readJsonFile(BLOK_PATH) ?? {};
-      const previousApps =
-        (previousBlok.apps as Record<string, Record<string, unknown>> | undefined) ?? {};
-      const blokApps: Record<string, Record<string, unknown>> = {};
-      const availableApps: NormalizedGenerateAppPluginOptions[] = [];
+    const packageData = readJsonFile(PACKAGE_JSON_PATH) ?? {};
+    const scripts =
+      (packageData.scripts as Record<string, string> | undefined) ?? {};
+    const previousBlok = readJsonFile(BLOK_PATH) ?? {};
+    const previousApps =
+      (previousBlok.apps as
+        | Record<string, Record<string, unknown>>
+        | undefined) ?? {};
+    const blokApps: Record<string, Record<string, unknown>> = {};
+    const availableApps: NormalizedGenerateAppPluginOptions[] = [];
 
-      for (const app of normalizedApps) {
-        const appRootDir = path.resolve(appsDir, app.key);
-        const appHooksDir = path.resolve(appRootDir, 'hooks');
-        const appActionsDir = path.resolve(appHooksDir, 'actions');
-        const appStatesDir = path.resolve(appHooksDir, 'states');
-        const appLocksDir = path.resolve(appHooksDir, 'locks');
+    for (const app of normalizedApps) {
+      const appRootDir = path.resolve(appsDir, app.key);
+      const appHooksDir = path.resolve(appRootDir, 'hooks');
+      const appActionsDir = path.resolve(appHooksDir, 'actions');
+      const appStatesDir = path.resolve(appHooksDir, 'states');
+      const appLocksDir = path.resolve(appHooksDir, 'locks');
 
-        ensureDir(appRootDir);
-        ensureDir(appHooksDir);
+      ensureDir(appRootDir);
+      ensureDir(appHooksDir);
 
-        const [hooksSchemaJson, statesSchemaJson, locksSchemaJson] = await Promise.all([
+      const [hooksSchemaJson, statesSchemaJson, locksSchemaJson] =
+        await Promise.all([
           fetchSchemaJson(app.hooksSchemaUrl, `${app.key} task schema`),
           fetchSchemaJson(app.statesSchemaUrl, `${app.key} state schema`),
           fetchSchemaJson(app.locksSchemaUrl, `${app.key} lock schema`),
         ]);
 
-        const previousAppEntry = previousApps[app.key] ?? {};
-        const previousAppSchemas = (previousAppEntry.schemas ?? {}) as Record<
-          string,
-          string | null
-        >;
+      const previousAppEntry = previousApps[app.key] ?? {};
+      const previousAppSchemas = (previousAppEntry.schemas ?? {}) as Record<
+        string,
+        string | null
+      >;
 
-        blokApps[app.key] = {
-          key: app.key,
-          name: app.name ?? app.key,
-          tasks:
-            (hooksSchemaJson?.implementations as Record<string, unknown> | undefined)
-            ?? (previousAppEntry.tasks as Record<string, unknown> | undefined)
-            ?? {},
-          states:
-            (statesSchemaJson?.states as Record<string, unknown> | undefined)
-            ?? (previousAppEntry.states as Record<string, unknown> | undefined)
-            ?? {},
-          locks:
-            (locksSchemaJson?.locks as Record<string, unknown> | undefined)
-            ?? (previousAppEntry.locks as Record<string, unknown> | undefined)
-            ?? {},
-          // Fall back to the recorded URLs: these come from env (VITE_SCHEMA_*), so a build
-          // with those vars unset would otherwise overwrite good values with null.
-          schemas: {
-            tasks: app.hooksSchemaUrl ?? previousAppSchemas.tasks ?? null,
-            states: app.statesSchemaUrl ?? previousAppSchemas.states ?? null,
-            locks: app.locksSchemaUrl ?? previousAppSchemas.locks ?? null,
-          },
-        };
+      blokApps[app.key] = {
+        key: app.key,
+        name: app.name ?? app.key,
+        tasks:
+          (hooksSchemaJson?.implementations as
+            | Record<string, unknown>
+            | undefined) ??
+          (previousAppEntry.tasks as Record<string, unknown> | undefined) ??
+          {},
+        states:
+          (statesSchemaJson?.states as Record<string, unknown> | undefined) ??
+          (previousAppEntry.states as Record<string, unknown> | undefined) ??
+          {},
+        locks:
+          (locksSchemaJson?.locks as Record<string, unknown> | undefined) ??
+          (previousAppEntry.locks as Record<string, unknown> | undefined) ??
+          {},
+        // Fall back to the recorded URLs: these come from env (VITE_SCHEMA_*), so a build
+        // with those vars unset would otherwise overwrite good values with null.
+        schemas: {
+          tasks: app.hooksSchemaUrl ?? previousAppSchemas.tasks ?? null,
+          states: app.statesSchemaUrl ?? previousAppSchemas.states ?? null,
+          locks: app.locksSchemaUrl ?? previousAppSchemas.locks ?? null,
+        },
+      };
 
-        if (isHooksSchema(hooksSchemaJson)) {
-          await generateActionsDirectory({
-            schema: hooksSchemaJson,
-            outputDir: appActionsDir,
-            importPathToUseAction: `${rekuestImportPath}/task`,
-            indexImportPathToUseAction: `${rekuestImportPath}/task`,
-            appKey: app.key,
-            symbolPrefix: app.symbolPrefix,
-            whitelist: app.hooksWhitelist,
-            blacklist: app.hooksBlacklist,
-          });
-        }
+      if (isHooksSchema(hooksSchemaJson)) {
+        await generateActionsDirectory({
+          schema: hooksSchemaJson,
+          outputDir: appActionsDir,
+          importPathToUseAction: `${rekuestImportPath}/task`,
+          indexImportPathToUseAction: `${rekuestImportPath}/task`,
+          appKey: app.key,
+          symbolPrefix: app.symbolPrefix,
+          whitelist: app.hooksWhitelist,
+          blacklist: app.hooksBlacklist,
+        });
+      }
 
-        if (isStatesSchema(statesSchemaJson)) {
-          await generateStatesDirectory({
-            schema: statesSchemaJson,
-            outputDir: appStatesDir,
-            importPathToSync: `${rekuestImportPath}/state`,
-            appKey: app.key,
-            symbolPrefix: app.symbolPrefix,
-            whitelist: app.statesWhitelist,
-            blacklist: app.statesBlacklist,
-          });
-        }
+      if (isStatesSchema(statesSchemaJson)) {
+        await generateStatesDirectory({
+          schema: statesSchemaJson,
+          outputDir: appStatesDir,
+          importPathToSync: `${rekuestImportPath}/state`,
+          appKey: app.key,
+          symbolPrefix: app.symbolPrefix,
+          whitelist: app.statesWhitelist,
+          blacklist: app.statesBlacklist,
+        });
+      }
 
-        if (isLocksSchema(locksSchemaJson)) {
-          await generateLocksDirectory({
-            schema: locksSchemaJson,
-            outputDir: appLocksDir,
-            importPathToSync: `${rekuestImportPath}/locks`,
-            appKey: app.key,
-            symbolPrefix: app.symbolPrefix,
-            whitelist: app.locksWhitelist,
-            blacklist: app.locksBlacklist,
-          });
-        }
+      if (isLocksSchema(locksSchemaJson)) {
+        await generateLocksDirectory({
+          schema: locksSchemaJson,
+          outputDir: appLocksDir,
+          importPathToSync: `${rekuestImportPath}/locks`,
+          appKey: app.key,
+          symbolPrefix: app.symbolPrefix,
+          whitelist: app.locksWhitelist,
+          blacklist: app.locksBlacklist,
+        });
+      }
 
+      await formatAndWrite(
+        path.resolve(appHooksDir, 'useCancelTask.ts'),
+        buildTaskHookContent(
+          app.key,
+          app.symbolPrefix,
+          'Cancel',
+          rekuestImportPath,
+        ),
+      );
+
+      await formatAndWrite(
+        path.resolve(appHooksDir, 'usePauseTask.ts'),
+        buildTaskHookContent(
+          app.key,
+          app.symbolPrefix,
+          'Pause',
+          rekuestImportPath,
+        ),
+      );
+
+      await formatAndWrite(
+        path.resolve(appHooksDir, 'useResumeTask.ts'),
+        buildTaskHookContent(
+          app.key,
+          app.symbolPrefix,
+          'Resume',
+          rekuestImportPath,
+        ),
+      );
+
+      await formatAndWrite(
+        path.resolve(appHooksDir, 'useStepTask.ts'),
+        buildTaskHookContent(
+          app.key,
+          app.symbolPrefix,
+          'Step',
+          rekuestImportPath,
+        ),
+      );
+
+      await formatAndWrite(
+        path.resolve(appHooksDir, 'useTaskStore.ts'),
+        buildTaskStoreHookContent(app.key, app.symbolPrefix, rekuestImportPath),
+      );
+
+      await formatAndWrite(
+        path.resolve(appHooksDir, 'useStateStore.ts'),
+        buildStateStoreHookContent(
+          app.key,
+          app.symbolPrefix,
+          rekuestImportPath,
+        ),
+      );
+
+      await formatAndWrite(
+        path.resolve(appHooksDir, 'useLockStore.ts'),
+        buildLockStoreHookContent(app.key, app.symbolPrefix, rekuestImportPath),
+      );
+
+      const hasAppDefinitionFiles = [
+        path.resolve(appActionsDir, 'index.ts'),
+        path.resolve(appStatesDir, 'index.ts'),
+        path.resolve(appLocksDir, 'index.ts'),
+      ].every((filePath) => fs.existsSync(filePath));
+
+      if (hasAppDefinitionFiles) {
         await formatAndWrite(
-          path.resolve(appHooksDir, 'useCancelTask.ts'),
-          buildTaskHookContent(app.key, app.symbolPrefix, 'Cancel', rekuestImportPath),
-        );
-
-        await formatAndWrite(
-          path.resolve(appHooksDir, 'usePauseTask.ts'),
-          buildTaskHookContent(app.key, app.symbolPrefix, 'Pause', rekuestImportPath),
-        );
-
-        await formatAndWrite(
-          path.resolve(appHooksDir, 'useResumeTask.ts'),
-          buildTaskHookContent(app.key, app.symbolPrefix, 'Resume', rekuestImportPath),
-        );
-
-        await formatAndWrite(
-          path.resolve(appHooksDir, 'useStepTask.ts'),
-          buildTaskHookContent(app.key, app.symbolPrefix, 'Step', rekuestImportPath),
-        );
-
-        await formatAndWrite(
-          path.resolve(appHooksDir, 'useTaskStore.ts'),
-          buildTaskStoreHookContent(app.key, app.symbolPrefix, rekuestImportPath),
-        );
-
-        await formatAndWrite(
-          path.resolve(appHooksDir, 'useStateStore.ts'),
-          buildStateStoreHookContent(app.key, app.symbolPrefix, rekuestImportPath),
-        );
-
-        await formatAndWrite(
-          path.resolve(appHooksDir, 'useLockStore.ts'),
-          buildLockStoreHookContent(app.key, app.symbolPrefix, rekuestImportPath),
-        );
-
-        const hasAppDefinitionFiles = [
-          path.resolve(appActionsDir, 'index.ts'),
-          path.resolve(appStatesDir, 'index.ts'),
-          path.resolve(appLocksDir, 'index.ts'),
-        ].every((filePath) => fs.existsSync(filePath));
-
-        if (hasAppDefinitionFiles) {
-          await formatAndWrite(
-            path.resolve(appRootDir, 'app.ts'),
-            `
+          path.resolve(appRootDir, 'app.ts'),
+          `
 import {
   globalActionDefinition,
   type GlobalActionDefinition,
@@ -1419,30 +1516,33 @@ export const appDefinition = {
   states: globalStateDefinition,
 } satisfies AppDefinition<'${app.key}'>;
 `,
-          );
+        );
 
-          availableApps.push(app);
-        } else {
-          console.warn(
-            `⚠️ [GenApps] Skipping app registry entry for "${app.key}" because generated definitions are unavailable. Existing code was preserved.`,
-          );
-        }
+        availableApps.push(app);
+      } else {
+        console.warn(
+          `⚠️ [GenApps] Skipping app registry entry for "${app.key}" because generated definitions are unavailable. Existing code was preserved.`,
+        );
       }
+    }
 
-      const appImports = availableApps
-        .map(
-          (app) =>
-            `import { appDefinition as ${toPascal(app.key)}AppDefinition } from './${app.key}/app';`,
-        )
-        .join('\n');
+    const appImports = availableApps
+      .map(
+        (app) =>
+          `import { appDefinition as ${toPascal(app.key)}AppDefinition } from './${app.key}/app';`,
+      )
+      .join('\n');
 
-      const appEntries = availableApps
-        .map((app) => `  ${JSON.stringify(app.key)}: ${toPascal(app.key)}AppDefinition,`)
-        .join('\n');
+    const appEntries = availableApps
+      .map(
+        (app) =>
+          `  ${JSON.stringify(app.key)}: ${toPascal(app.key)}AppDefinition,`,
+      )
+      .join('\n');
 
-      await formatAndWrite(
-        path.resolve(appsDir, 'index.ts'),
-        `
+    await formatAndWrite(
+      path.resolve(appsDir, 'index.ts'),
+      `
 ${appImports}
 
 export const appsDefinition = {
@@ -1453,37 +1553,39 @@ export type AppsDefinition = typeof appsDefinition;
 export type AppKey = keyof AppsDefinition;
 export type AppDefinition = AppsDefinition[AppKey];
 `,
-      );
+    );
 
-      // Everything except generatedAt. Key order comes from the backend's JSON and is not
-      // stable, so deep-sort it before comparing or writing.
-      const blokPayload = sortKeysDeep({
-        app: {
-          name: (packageData.name as string | undefined) ?? 'unknown',
-          version: (packageData.version as string | undefined) ?? '0.0.0',
-          description: (packageData.description as string | undefined) ?? '',
-          startPage:
-            (packageData.homepage as string | undefined) ?? '/index.html',
-          type: (packageData.type as string | undefined) ?? 'unknown',
-          scripts: {
-            dev: scripts.dev ?? '',
-            build: scripts.build ?? '',
-            preview: scripts.preview ?? '',
-          },
+    // Everything except generatedAt. Key order comes from the backend's JSON and is not
+    // stable, so deep-sort it before comparing or writing.
+    const blokPayload = sortKeysDeep({
+      app: {
+        name: (packageData.name as string | undefined) ?? 'unknown',
+        version: (packageData.version as string | undefined) ?? '0.0.0',
+        description: (packageData.description as string | undefined) ?? '',
+        startPage:
+          (packageData.homepage as string | undefined) ?? '/index.html',
+        type: (packageData.type as string | undefined) ?? 'unknown',
+        scripts: {
+          dev: scripts.dev ?? '',
+          build: scripts.build ?? '',
+          preview: scripts.preview ?? '',
         },
-        apps: blokApps,
-      }) as Record<string, unknown>;
+      },
+      apps: blokApps,
+    }) as Record<string, unknown>;
 
-      // Only stamp a new generatedAt when the content actually changed. Otherwise every
-      // dev-server start would dirty blok.json (780KB) for no reason.
-      const { generatedAt: previousGeneratedAt, ...previousPayload } = previousBlok;
-      const unchanged =
-        typeof previousGeneratedAt === 'string'
-        && JSON.stringify(sortKeysDeep(previousPayload)) === JSON.stringify(blokPayload);
+    // Only stamp a new generatedAt when the content actually changed. Otherwise every
+    // dev-server start would dirty blok.json (780KB) for no reason.
+    const { generatedAt: previousGeneratedAt, ...previousPayload } =
+      previousBlok;
+    const unchanged =
+      typeof previousGeneratedAt === 'string' &&
+      JSON.stringify(sortKeysDeep(previousPayload)) ===
+        JSON.stringify(blokPayload);
 
-      formatAndWriteJson(BLOK_PATH, {
-        generatedAt: unchanged ? previousGeneratedAt : new Date().toISOString(),
-        ...blokPayload,
-      });
+    formatAndWriteJson(BLOK_PATH, {
+      generatedAt: unchanged ? previousGeneratedAt : new Date().toISOString(),
+      ...blokPayload,
+    });
   }
 }

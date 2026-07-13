@@ -1,21 +1,19 @@
-import { Card } from "@/components/ui/card";
-import { useExpanseState } from "@/apps/default/hooks/states";
-import { useSelectionStore } from "@/store/imageStore";
-import { useModeStore } from "@/store/modeStore";
-import { useViewStore } from "@/store/viewStore";
-import { useMemo } from "react";
-import * as THREE from "three";
+import { Card } from '@/components/ui/card';
+import { useExpanseState } from '@/apps/default/hooks/states';
+import { useSelectionStore } from '@/store/imageStore';
+import { useModeStore } from '@/store/modeStore';
+import { useViewStore } from '@/store/viewStore';
+import { useMemo } from 'react';
+import * as THREE from 'three';
 
 export const FramePanel = () => {
   // 1. Get Domain Data
   const selectedFrameId = useSelectionStore((s) => s.selectedFrameId);
-  const selectedFrame = useExpanseState().data?.current_frames?.find((f) => f.id === selectedFrameId);
+  const selectedFrame = useExpanseState().data?.current_frames?.find(
+    (f) => f.id === selectedFrameId,
+  );
   const displayMode = useModeStore((s) => s.displayMode);
   const interactionMode = useModeStore((s) => s.interactionMode);
-
-
-
-
 
   // 2. Get Camera Data
   const viewProjectionMatrix = useViewStore((s) => s.viewProjectionMatrix);
@@ -24,11 +22,9 @@ export const FramePanel = () => {
   const affineMatrix = selectedFrame?.metadata.affine_matrix;
   const hasAffineMatrix = !!affineMatrix;
 
-
   // 3. Calculate 2D Screen Position
   const screenPos = useMemo(() => {
-    if (!selectedFrameId || !viewProjectionMatrix || !viewportSize)
-      return null;
+    if (!selectedFrameId || !viewProjectionMatrix || !viewportSize) return null;
     if (!hasAffineMatrix) {
       return {
         x: viewportSize.width / 2,
@@ -75,13 +71,18 @@ export const FramePanel = () => {
       x: (worldVector.x * 0.5 + 0.5) * viewportSize.width,
       y: (worldVector.y * -0.5 + 0.5) * viewportSize.height,
     };
-  }, [selectedFrame, viewProjectionMatrix, viewportSize, hasAffineMatrix]);
+  }, [
+    selectedFrame,
+    selectedFrameId,
+    viewProjectionMatrix,
+    viewportSize,
+    hasAffineMatrix,
+  ]);
 
   // Early returns if data is missing or out of bounds
-  if (displayMode !== "3D") return null;
-  if (interactionMode === "META") return null;
+  if (displayMode !== '3D') return null;
+  if (interactionMode === 'META') return null;
   if (!selectedFrame || !screenPos) return null;
-
 
   return (
     <Card

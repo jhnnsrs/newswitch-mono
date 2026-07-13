@@ -1,8 +1,10 @@
-import type { FilterKubeStateSchema } from "@/apps/default/hooks/states/ExpanseState";
-import { type z } from "zod";
-import * as THREE from "three";
-import { useThreeAffine } from "./useThreeAffine";
-import { useFilterBankState, type FilterBankKubeSchema } from "@/apps/default/hooks/states";
+import { type z } from 'zod';
+import * as THREE from 'three';
+import { useThreeAffine } from './useThreeAffine';
+import {
+  useFilterBankState,
+  type FilterBankKubeSchema,
+} from '@/apps/default/hooks/states';
 
 type FilterBankKubeData = z.infer<typeof FilterBankKubeSchema>;
 
@@ -38,7 +40,7 @@ function wavelengthToHex(wavelength: number): string {
     b = 0;
   } else {
     // Fallback for non-visible wavelengths (e.g., UV or IR)
-    return "#cbd5e1";
+    return '#cbd5e1';
   }
 
   // Intensity modulation to fade out the edges of the visible spectrum
@@ -51,23 +53,24 @@ function wavelengthToHex(wavelength: number): string {
 
   const toHex = (c: number) => {
     const hex = Math.round(c * factor * 255).toString(16);
-    return hex.length === 1 ? "0" + hex : hex;
+    return hex.length === 1 ? '0' + hex : hex;
   };
 
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
 export const FilterKubePlane = ({ data }: { data: FilterBankKubeData }) => {
-  const {data: filterbank} = useFilterBankState()
+  const { data: filterbank } = useFilterBankState();
   const matrix = useThreeAffine(data.affine_matrix);
 
-
-  const currentWavelength =  filterbank?.filters.find((f) => f.slot === filterbank.current_slot)?.wavelength;
+  const currentWavelength = filterbank?.filters.find(
+    (f) => f.slot === filterbank.current_slot,
+  )?.center_wavelength;
 
   // Calculate the color based on the wavelength, defaulting to clear/gray if undefined
   const filterColor = currentWavelength
     ? wavelengthToHex(currentWavelength)
-    : "#e2e8f0";
+    : '#e2e8f0';
 
   return (
     <group matrix={matrix} matrixAutoUpdate={false}>

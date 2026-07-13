@@ -4,12 +4,10 @@ import { applyPatch, type Operation } from 'fast-json-patch';
 import { createStore, type StateCreator, type StoreApi } from 'zustand/vanilla';
 import { devtools, subscribeWithSelector } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import type { StatePatchEvent, StateSegmentsResponse } from '@/lib/rekuest/transport/types';
-
-
-
-
-
+import type {
+  StatePatchEvent,
+  StateSegmentsResponse,
+} from '@/lib/rekuest/transport/types';
 
 export interface StateSnapshot {
   name: string;
@@ -30,21 +28,17 @@ export interface LatestPatchEntry {
 }
 
 export interface GlobalStateStore {
-
-
   states: Record<string, unknown>;
   stateRevisions: Record<string, number | undefined>;
   globalRevision: string | number | null;
-  latestPatches: LatestPatchEntry[],
+  latestPatches: LatestPatchEntry[];
 
   isLive: boolean;
   segments: StateSegmentsResponse[];
   snapshots: SnapshotEnvelope[];
 
-
   loading: Record<string, boolean | undefined>;
   errors: Record<string, Error | null | undefined>;
-
 
   setIsLive: (isLive: boolean) => void;
   setState: (key: string, value: unknown) => void;
@@ -88,7 +82,8 @@ export const createGlobalStateStore = ({
       return null;
     }
 
-    const numericRevision = typeof revision === 'number' ? revision : Number(revision);
+    const numericRevision =
+      typeof revision === 'number' ? revision : Number(revision);
     return Number.isFinite(numericRevision) ? numericRevision : null;
   };
 
@@ -98,202 +93,218 @@ export const createGlobalStateStore = ({
     [['zustand/subscribeWithSelector', never], ['zustand/immer', never]]
   > = subscribeWithSelector(
     immer((set, get) => ({
-        states: {},
-        stateRevisions: {},
-        loading: {},
-        isLive: false,
-        segments: [],
-        snapshots: [],
-        errors: {},
-        latestPatches: [],
-        globalRevision: null,
-        setIsLive: (isLive) => {
-          set((state) => {
-            state.isLive = isLive;
-          });
-        },
-        setGlobalRevision: (revision) => {
-          set((state) => {
-            state.globalRevision = revision;
-          });
-        },
-        setState: (key, value) => {
-          set((state) => {
-            state.states[key] = value;
+      states: {},
+      stateRevisions: {},
+      loading: {},
+      isLive: false,
+      segments: [],
+      snapshots: [],
+      errors: {},
+      latestPatches: [],
+      globalRevision: null,
+      setIsLive: (isLive) => {
+        set((state) => {
+          state.isLive = isLive;
+        });
+      },
+      setGlobalRevision: (revision) => {
+        set((state) => {
+          state.globalRevision = revision;
+        });
+      },
+      setState: (key, value) => {
+        set((state) => {
+          state.states[key] = value;
+          state.errors[key] = null;
+          state.stateRevisions[key] = 0;
+        });
+      },
+
+      setStateSnapshot: (key, value, revision) => {
+        set((state) => {
+          state.states[key] = value;
+          state.errors[key] = null;
+          state.stateRevisions[key] = revision;
+        });
+      },
+
+      setStateSnapshots: (snapshots, trustedRevision) => {
+        set((state) => {
+          const normalizedTrustedRevision = toTrustedRevision(trustedRevision);
+          for (const [key, snapshot] of Object.entries(snapshots)) {
+            state.states[key] = snapshot.value;
             state.errors[key] = null;
-            state.stateRevisions[key] = 0;
-          });
-        },
+            state.stateRevisions[key] =
+              normalizedTrustedRevision ?? snapshot.revision;
+          }
+        });
+      },
 
-        setStateSnapshot: (key, value, revision) => {
-          set((state) => {
-            state.states[key] = value;
-            state.errors[key] = null;
-            state.stateRevisions[key] = revision;
-          });
-        },
+      replaceStateSnapshots: (snapshots, trustedRevision) => {
+        set((state) => {
+          const normalizedTrustedRevision = toTrustedRevision(trustedRevision);
 
-        setStateSnapshots: (snapshots, trustedRevision) => {
-          set((state) => {
-            const normalizedTrustedRevision = toTrustedRevision(trustedRevision);
-            for (const [key, snapshot] of Object.entries(snapshots)) {
-              state.states[key] = snapshot.value;
-              state.errors[key] = null;
-              state.stateRevisions[key] = normalizedTrustedRevision ?? snapshot.revision;
-            }
-          });
-        },
+          state.states = Object.fromEntries(
+            Object.entries(snapshots).map(([key, snapshot]) => [
+              key,
+              snapshot.value,
+            ]),
+          );
+          state.errors = Object.fromEntries(
+            Object.keys(snapshots).map((key) => [key, null]),
+          );
+          state.stateRevisions = Object.fromEntries(
+            Object.entries(snapshots).map(([key, snapshot]) => [
+              key,
+              normalizedTrustedRevision ?? snapshot.revision,
+            ]),
+          );
+        });
+      },
 
-        replaceStateSnapshots: (snapshots, trustedRevision) => {
-          set((state) => {
-            const normalizedTrustedRevision = toTrustedRevision(trustedRevision);
-
-            state.states = Object.fromEntries(
-              Object.entries(snapshots).map(([key, snapshot]) => [key, snapshot.value]),
-            );
-            state.errors = Object.fromEntries(
-              Object.keys(snapshots).map((key) => [key, null]),
-            );
-            state.stateRevisions = Object.fromEntries(
-              Object.entries(snapshots).map(([key, snapshot]) => [
-                key,
-                normalizedTrustedRevision ?? snapshot.revision,
-              ]),
-            );
-          });
-        },
-
-        cacheSnapshot: (globalRevision, snapshots) => {
-          set((state) => {
-            const snapshotEnvelope: SnapshotEnvelope = {
-              revision: globalRevision,
-              state_snapshots: Object.entries(snapshots).map(([name, snapshot]) => ({
+      cacheSnapshot: (globalRevision, snapshots) => {
+        set((state) => {
+          const snapshotEnvelope: SnapshotEnvelope = {
+            revision: globalRevision,
+            state_snapshots: Object.entries(snapshots).map(
+              ([name, snapshot]) => ({
                 name,
                 value: snapshot.value,
                 revision: snapshot.revision,
-              })),
-            };
+              }),
+            ),
+          };
 
-            const existingIndex = state.snapshots.findIndex(
-              (entry) => String(entry.revision) === String(globalRevision),
+          const existingIndex = state.snapshots.findIndex(
+            (entry) => String(entry.revision) === String(globalRevision),
+          );
+
+          if (existingIndex >= 0) {
+            state.snapshots[existingIndex] = snapshotEnvelope;
+            return;
+          }
+
+          state.snapshots.push(snapshotEnvelope);
+          state.snapshots.sort(
+            (left, right) => Number(left.revision) - Number(right.revision),
+          );
+        });
+      },
+
+      upsertSegments: (segments) => {
+        set((state) => {
+          const nextSegments = [...state.segments];
+
+          for (const segment of segments) {
+            const existingIndex = nextSegments.findIndex(
+              (entry) =>
+                entry.from_global_revision === segment.from_global_revision &&
+                entry.to_global_revision === segment.to_global_revision,
             );
 
             if (existingIndex >= 0) {
-              state.snapshots[existingIndex] = snapshotEnvelope;
-              return;
+              nextSegments[existingIndex] = segment;
+            } else {
+              nextSegments.push(segment);
             }
-
-            state.snapshots.push(snapshotEnvelope);
-            state.snapshots.sort(
-              (left, right) => Number(left.revision) - Number(right.revision),
-            );
-          });
-        },
-
-        upsertSegments: (segments) => {
-          set((state) => {
-            const nextSegments = [...state.segments];
-
-            for (const segment of segments) {
-              const existingIndex = nextSegments.findIndex(
-                (entry) =>
-                  entry.from_global_revision === segment.from_global_revision
-                  && entry.to_global_revision === segment.to_global_revision,
-              );
-
-              if (existingIndex >= 0) {
-                nextSegments[existingIndex] = segment;
-              } else {
-                nextSegments.push(segment);
-              }
-            }
-
-            nextSegments.sort(
-              (left, right) => left.from_global_revision - right.from_global_revision,
-            );
-
-            state.segments = nextSegments;
-          });
-        },
-
-        applyPatch: (message) => {
-          
-          const currentState = get().states[message.state_name];
-
-          console.log(`[StateStore] Applying patch to ${message.state_name} at global revision ${message.global_rev}:`, message);
-
-
-          set((state) => {
-            const nextEntry = {
-              stateName: message.state_name,
-              path: message.path,
-              ts: message.ts,
-            };
-
-            state.latestPatches = [
-              ...state.latestPatches,
-              nextEntry,
-            ].slice(-latestPatchesBufferSize);
-          });
-
-          try {
-            const clonedState = JSON.parse(JSON.stringify(currentState));
-            const { newDocument } = applyPatch(clonedState, [message]);
-            
-
-            set((state) => {
-              state.states[message.state_name] = newDocument;
-              state.globalRevision = message.global_rev;
-            });
-          } catch (err) {
-            console.error(`[StateStore] Failed to apply patch to ${message.state_name}:`, err);
           }
-        },
 
-        replaceLatestPatches: (patches) => {
+          nextSegments.sort(
+            (left, right) =>
+              left.from_global_revision - right.from_global_revision,
+          );
+
+          state.segments = nextSegments;
+        });
+      },
+
+      applyPatch: (message) => {
+        const currentState = get().states[message.state_name];
+
+        console.log(
+          `[StateStore] Applying patch to ${message.state_name} at global revision ${message.global_rev}:`,
+          message,
+        );
+
+        set((state) => {
+          const nextEntry: LatestPatchEntry = {
+            stateName: message.state_name,
+            path: message.path,
+            revision: message.global_rev,
+            ts: message.ts,
+          };
+
+          state.latestPatches = [...state.latestPatches, nextEntry].slice(
+            -latestPatchesBufferSize,
+          );
+        });
+
+        try {
+          const clonedState = JSON.parse(JSON.stringify(currentState));
+          // The patch event *is* a JSON-Patch operation (op/path/value) plus transport
+          // metadata (state_name, global_rev, ts, ...) that fast-json-patch ignores.
+          // It can't be narrowed structurally: `op` is the full union while `Operation`
+          // is a discriminated union whose `move`/`copy` members require a `from` field
+          // that StatePatchEvent doesn't carry, so no exhaustive switch can produce one.
+          const operation = message as unknown as Operation;
+          const { newDocument } = applyPatch(clonedState, [operation]);
+
           set((state) => {
-            state.latestPatches = patches.slice(-latestPatchesBufferSize);
+            state.states[message.state_name] = newDocument;
+            state.globalRevision = message.global_rev;
           });
-        },
+        } catch (err) {
+          console.error(
+            `[StateStore] Failed to apply patch to ${message.state_name}:`,
+            err,
+          );
+        }
+      },
 
-        setLoading: (key, loading) => {
-          set((state) => {
-            state.loading[key] = loading;
-          });
-        },
+      replaceLatestPatches: (patches) => {
+        set((state) => {
+          state.latestPatches = patches.slice(-latestPatchesBufferSize);
+        });
+      },
 
-        setError: (key, error) => {
-          set((state) => {
-            state.errors[key] = error;
-          });
-        },
+      setLoading: (key, loading) => {
+        set((state) => {
+          state.loading[key] = loading;
+        });
+      },
 
-        getState: <T = unknown>(key: string) => {
-          return get().states[key] as T | undefined;
-        },
+      setError: (key, error) => {
+        set((state) => {
+          state.errors[key] = error;
+        });
+      },
 
-        clearState: (key) => {
-          set((state) => {
-            delete state.states[key];
-            delete state.loading[key];
-            delete state.errors[key];
-            delete state.stateRevisions[key];
-          });
-        },
+      getState: <T = unknown>(key: string) => {
+        return get().states[key] as T | undefined;
+      },
 
-        clearAll: () => {
-          set((state) => {
-            state.states = {};
-            state.loading = {};
-            state.errors = {};
-            state.stateRevisions = {};
-            state.latestPatches = [];
-            state.globalRevision = null;
-            state.segments = [];
-            state.snapshots = [];
-          });
-        },
-      })),
+      clearState: (key) => {
+        set((state) => {
+          delete state.states[key];
+          delete state.loading[key];
+          delete state.errors[key];
+          delete state.stateRevisions[key];
+        });
+      },
+
+      clearAll: () => {
+        set((state) => {
+          state.states = {};
+          state.loading = {};
+          state.errors = {};
+          state.stateRevisions = {};
+          state.latestPatches = [];
+          state.globalRevision = null;
+          state.segments = [];
+          state.snapshots = [];
+        });
+      },
+    })),
   );
 
   if (debug) {
@@ -342,9 +353,8 @@ export const createGlobalStateStoreRegistry = ({
   };
 };
 
-export const GlobalStateStoreContext = createContext<GlobalStateStoreRegistry | null>(
-  null,
-);
+export const GlobalStateStoreContext =
+  createContext<GlobalStateStoreRegistry | null>(null);
 
 export const useGlobalStateStoreRegistry = (): GlobalStateStoreRegistry => {
   const registry = useContext(GlobalStateStoreContext);
@@ -377,11 +387,13 @@ export function useGlobalStateStore<TSelected>(
   return useStore(registry.getStoreApi(appKey), selector);
 }
 
-export const selectState = <T = unknown>(key: string) =>
+export const selectState =
+  <T = unknown>(key: string) =>
   (store: GlobalStateStore): T | undefined =>
     store.states[key] as T | undefined;
 
-export const selectRevision = (key: string) =>
+export const selectRevision =
+  (key: string) =>
   (store: GlobalStateStore): number =>
     store.stateRevisions[key] ?? 0;
 
@@ -391,7 +403,8 @@ export const selectLoading = (key: string) => (store: GlobalStateStore) =>
 export const selectError = (key: string) => (store: GlobalStateStore) =>
   store.errors[key] ?? null;
 
-export const selectLatestPatches = (limit?: number) =>
+export const selectLatestPatches =
+  (limit?: number) =>
   (store: GlobalStateStore): LatestPatchEntry[] =>
     limit == null ? store.latestPatches : store.latestPatches.slice(-limit);
 

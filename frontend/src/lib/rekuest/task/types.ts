@@ -1,5 +1,9 @@
 import { z, ZodType } from 'zod';
-import type { AssignOptions, Task, TaskStatus } from '@/lib/rekuest/transport/types';
+import type {
+  AssignOptions,
+  Task,
+  TaskStatus,
+} from '@/lib/rekuest/transport/types';
 
 export interface ActionDefinition<
   TArgs,
@@ -34,6 +38,9 @@ export interface UseActionResult<TArgs, TReturn> {
     args: TArgs,
     options?: AssignOptions,
   ) => Promise<Task<TArgs, TReturn>>;
+  // The currently-tracked task. useAction already derives status/result/progress from it;
+  // consumers need the task itself for its id (pause/resume take a task id).
+  task: Task<TArgs, TReturn> | null;
   status: TaskStatus | null;
   result: TReturn | null;
   error: string | null;

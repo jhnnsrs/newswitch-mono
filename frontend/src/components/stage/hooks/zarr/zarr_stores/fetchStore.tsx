@@ -1,17 +1,14 @@
 // Must stay a type-only import: `import { type X }` keeps the module side-effect under
 // verbatimModuleSyntax, which pulls @zarrita/storage's Node-only FileSystemStore (fs.js)
 // into the browser bundle and breaks the build.
-import type { AbsolutePath } from "@zarrita/storage";
-import { FetchStore } from "zarrita";
-import { LRUCache } from "../caches/in_memory_lru";
+import type { AbsolutePath } from '@zarrita/storage';
+import { FetchStore } from 'zarrita';
+import { LRUCache } from '../caches/in_memory_lru';
 
+class AsyncLockManager<T> {
+  private locks = new Map<string, Promise<T>>();
 
-
-
-class AsyncLockManager {
-  private locks = new Map<string, Promise<Uint8Array<ArrayBufferLike>>>();
-
-  async withLock(key: string, fn: () => Promise<Uint8Array<ArrayBufferLike>>): Promise<Uint8Array<ArrayBufferLike>> {
+  async withLock(key: string, fn: () => Promise<T>): Promise<T> {
     if (this.locks.has(key)) {
       return await this.locks.get(key)!;
     }
@@ -29,7 +26,7 @@ export class HTTPError extends Error {
   __zarr__: string;
   constructor(code: string | undefined) {
     super(code);
-    this.__zarr__ = "HTTPError";
+    this.__zarr__ = 'HTTPError';
     Object.setPrototypeOf(this, HTTPError.prototype);
   }
 }
@@ -39,7 +36,7 @@ export class KeyError extends Error {
 
   constructor(key: string | undefined) {
     super(`key ${key} not present`);
-    this.__zarr__ = "KeyError";
+    this.__zarr__ = 'KeyError';
     Object.setPrototypeOf(this, KeyError.prototype);
   }
 }
@@ -48,20 +45,20 @@ export function joinUrlParts(...args: string[]) {
   return args
     .map((part, i) => {
       if (i === 0) {
-        return part.trim().replace(/[\/]*$/g, "");
+        return part.trim().replace(/[/]*$/g, '');
       } else {
-        return part.trim().replace(/(^[\/]*|[\/]*$)/g, "");
+        return part.trim().replace(/(^[/]*|[/]*$)/g, '');
       }
     })
     .filter((x) => x.length)
-    .join("/");
+    .join('/');
 }
 
 function resolve(root: string | URL, path: AbsolutePath): URL {
-  const base = typeof root === "string" ? new URL(root) : root;
-  if (!base.pathname.endsWith("/")) {
+  const base = typeof root === 'string' ? new URL(root) : root;
+  if (!base.pathname.endsWith('/')) {
     // ensure trailing slash so that base is resolved as _directory_
-    base.pathname += "/";
+    base.pathname += '/';
   }
   const resolved = new URL(path.slice(1), base);
   // copy search params to new URL
@@ -85,17 +82,19 @@ async function handle_response(
 
 const global_cache = new LRUCache<string, ArrayBuffer>(500);
 
-export class CachedFetchStore extends FetchStore {
-  private fetchFunc: typeof fetch;
-  private cache: LRUCache<string, ArrayBuffer>;
-  private lockManager: AsyncLockManager;
+type FetchStoreOptions = NonNullable<
+  ConstructorParameters<typeof FetchStore>[1]
+>;
 
-  constructor(url: string, options: any = {}) {
+export class CachedFetchStore extends FetchStore {
+  private cache: LRUCache<string, ArrayBuffer>;
+  private lockManager: AsyncLockManager<Uint8Array | undefined>;
+
+  constructor(url: string, options: FetchStoreOptions = {}) {
     super(url, options);
-    this.fetchFunc = window.fetch;
     this.url = url;
     this.cache = global_cache;
-    this.lockManager = new AsyncLockManager();
+    this.lockManager = new AsyncLockManager<Uint8Array | undefined>();
   }
 
   async get(key: AbsolutePath, options: RequestInit = {}) {
@@ -174,7 +173,7 @@ export interface DataZarray {
   compressor: Compressor;
   dtype: string;
   fill_value: string;
-  filters?: any;
+  filters?: Record<string, unknown>[] | null;
   order: string;
   shape: number[];
   zarr_format: number;
@@ -185,10 +184,10 @@ export interface DataZattrs {
 }
 
 export interface Metadata {
-  ".zattrs": Zattrs;
-  ".zgroup": Zgroup;
-  "data/.zarray": DataZarray;
-  "data/.zattrs": DataZattrs;
+  '.zattrs': Zattrs;
+  '.zgroup': Zgroup;
+  'data/.zarray': DataZarray;
+  'data/.zattrs': DataZattrs;
 }
 
 export interface XArrayMetadata {
@@ -196,19 +195,6 @@ export interface XArrayMetadata {
   zarr_consolidated_format: number;
 }
 
-type Labels = [...string[], "y", "x"];
-function getAxisLabelsAndChannelAxis(
-  xarray_metadata: XArrayMetadata,
-  arr: ZarrArray,
-): { labels: Labels; channel_axis: number } {
-  // type cast string[] to Labels
-  const labels = xarray_metadata.metadata["data/.zattrs"]
-    ._ARRAY_DIMENSIONS as Labels;
-
-  const channel_axis = labels.indexOf("c");
-  return { labels, channel_axis };
-}
-
-
-
-export type SelectionLoader = (s: any) => Promise<ZarrArray>;
+// NOTE: `getAxisLabelsAndChannelAxis` and `SelectionLoader` used to live here. Both were
+// dead (referenced nowhere) and both referred to a `ZarrArray` type that does not exist in
+// this codebase, so they could never have compiled. Removed.

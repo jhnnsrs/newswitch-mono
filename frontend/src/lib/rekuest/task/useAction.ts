@@ -6,10 +6,7 @@ import {
   useBlockingLock,
   useLockStoreApi,
 } from '@/lib/rekuest/locks/store';
-import {
-  selectTask,
-  useTaskStore,
-} from '@/lib/rekuest/task/store';
+import { selectTask, useTaskStore } from '@/lib/rekuest/task/store';
 import { useTaskContext } from '@/lib/rekuest/task/task-context';
 import type { AssignOptions, Task } from '@/lib/rekuest/transport/types';
 import type {
@@ -115,7 +112,9 @@ export const useAction = <TArgs, TReturn>(
       );
 
       if (!isLive) {
-        throw new Error('Action is unavailable while the app is not in live mode');
+        throw new Error(
+          'Action is unavailable while the app is not in live mode',
+        );
       }
 
       if (lockKey) {
@@ -131,12 +130,18 @@ export const useAction = <TArgs, TReturn>(
       }
 
       const reference = opts?.reference || taskApi.createReference();
-    setCurrentReference(reference);
+      setCurrentReference(reference);
+
+      // `argsSchema` is `ZodType<unknown, TArgs>` (TArgs is the schema's INPUT), so
+      // `parsed.data` is statically `unknown`. At runtime it is the validated form of
+      // `args` - defaults filled in and branded - which is structurally still a TArgs,
+      // so recording it as the task's args type is sound.
+      const wireArgs = parsed.data as TArgs;
 
       return await taskApi.assign<TArgs, TReturn>(
         appKey,
         definition.name,
-        parsed.data,
+        wireArgs,
         { ...opts, reference },
       );
     },
@@ -156,7 +161,10 @@ export const useAction = <TArgs, TReturn>(
 
       await execute(args, { ...opts, reference });
 
-      const taskState = await taskApi.waitForTask<TArgs, TReturn>(appKey, reference);
+      const taskState = await taskApi.waitForTask<TArgs, TReturn>(
+        appKey,
+        reference,
+      );
       const parsed = definition.returnSchema.safeParse(taskState.result);
 
       if (!parsed.success) {
@@ -188,6 +196,7 @@ export const useAction = <TArgs, TReturn>(
   return {
     call,
     assign,
+    task,
     status,
     result,
     error,

@@ -87,24 +87,76 @@ jobs:
           cache-dependency-path: frontend/yarn.lock
       - run: yarn install --frozen-lockfile
 
-      # Non-blocking for now. Both gates were dead before the monorepo (`types` pointed at
-      # a solution tsconfig with `files: []`, so it checked ZERO files, and no CI ever ran
-      # eslint), which hid ~165 type errors and ~91 eslint problems. They're reported here
-      # so the debt is visible; flip these to blocking once the backlog is cleared.
+      # Blocking. Both gates used to be dead - `types` pointed at a solution tsconfig with
+      # `files: []` so it checked ZERO files, and no CI ever ran eslint - which hid 165 type
+      # errors and 90 lint problems. The backlog is cleared; keep it that way.
       - run: yarn lint
-        continue-on-error: true
       - run: yarn types
-        continue-on-error: true
+
+      - run: yarn test
 
       # No backend in CI: the vite plugin warns on failed schema fetches and reuses the
       # committed blok.json + src/apps/default/**. A green build here therefore also
       # asserts those generated files are present and coherent in git.
       - run: yarn build
 
+  # The frontend is GENERATED from the running backend, and the generator fails SILENTLY
+  # (fetch errors are warnings; it falls back to the committed output). So committed hooks
+  # can drift away from the backend with nothing to catch it. This job boots the real
+  # backend, regenerates, and fails if the result differs from what is committed.
+  # It only works because both halves live in one repo at one commit.
+  codegen-drift:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "latest"
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: frontend/yarn.lock
+
+      - run: uv sync --all-extras --dev
+        working-directory: backend
+      - run: yarn install --frozen-lockfile
+        working-directory: frontend
+
+      - name: Boot the backend
+        run: uv run uvicorn main:app --host 127.0.0.1 --port 8099 &
+        working-directory: backend
+
+      - name: Wait for the schema endpoints
+        run: |
+          for _ in $(seq 1 60); do
+            curl -sf http://localhost:8099/schemas/states >/dev/null 2>&1 && exit 0
+            sleep 1
+          done
+          echo "backend never came up" >&2
+          exit 1
+
+      - name: Regenerate
+        run: yarn build
+        working-directory: frontend
+
+      - name: Fail if the committed codegen is stale
+        run: |
+          if ! git diff --quiet -- frontend/src/apps frontend/blok.json; then
+            echo "::error::Generated frontend code does not match the backend."
+            git diff --stat -- frontend/src/apps frontend/blok.json
+            git diff -- frontend/src/apps frontend/blok.json | head -100
+            exit 1
+          fi
+          echo "Generated code matches the backend."
+
   ci-ok:
     # One required status check that still passes when path filters skip a job
     if: always()
-    needs: [backend-test, backend-coverage, frontend]
+    needs: [backend-test, backend-coverage, frontend, codegen-drift]
     runs-on: ubuntu-latest
     steps:
       - name: Fail if any needed job failed

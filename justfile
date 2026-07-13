@@ -8,16 +8,18 @@ default:
 
 # ---------- setup ----------
 
-# Install python + node dependencies
+# Install python + node dependencies, and activate the git hooks
 install:
     cd backend && uv sync --all-extras --dev
     cd frontend && yarn install --frozen-lockfile
+    # Without this the commit-msg / pre-commit hooks never activate for a fresh clone.
+    npx --yes lefthook install
 
 # ---------- dev ----------
 
-# Backend only -> http://localhost:8099
+# Backend only -> http://localhost:8099 (hot-reloads on edit)
 dev-backend:
-    cd backend && uv run test.py
+    cd backend && uv run uvicorn main:app --host 0.0.0.0 --port 8099 --reload
 
 # Frontend only -> http://localhost:5173 (needs the backend up for fresh codegen)
 # Binding + allowedHosts live in vite.config.ts, so no --host flag needed here.
@@ -41,7 +43,7 @@ dev:
     #!/usr/bin/env bash
     set -uo pipefail
     trap 'trap - EXIT; kill 0' EXIT INT TERM
-    (cd backend && exec uv run test.py) &
+    (cd backend && exec uv run uvicorn main:app --host 0.0.0.0 --port 8099 --reload) &
     if ! just wait-backend; then
       echo "!! backend unreachable - vite will fall back to the COMMITTED generated hooks" >&2
       echo "!! (see frontend/plugins/generate-app.ts: fetch failures are warnings, not errors)" >&2
@@ -55,20 +57,52 @@ lint:
     cd backend && uv run ruff check .
     cd frontend && yarn lint
 
+# Format everything in place
+fmt:
+    cd backend && uv run ruff format .
+    cd frontend && yarn prettier --write "src/**/*.{ts,tsx,css}" "plugins/**/*.ts"
+
+# Fail if anything is unformatted (used by CI / the pre-commit hook)
+fmt-check:
+    cd backend && uv run ruff format --check .
+    cd frontend && yarn prettier --check "src/**/*.{ts,tsx,css}" "plugins/**/*.ts"
+
 # NOTE: not `tsc --noEmit` - the root tsconfig is a solution config with `files: []`,
 # so a non-build tsc there checks ZERO files and passes trivially.
 types:
     cd frontend && yarn types
 
-# Fast tests (no running server needed)
-test:
+# Fast tests, both halves (no running server needed)
+test: test-backend test-frontend
+
+test-backend:
     cd backend && uv run pytest -k "not integration"
+
+test-frontend:
+    cd frontend && yarn test
 
 # Everything, including integration tests
 test-all:
     cd backend && uv run pytest
+    cd frontend && yarn test
 
-check: lint types test
+check: fmt-check lint types test
+
+# Fail if the committed generated code no longer matches the running backend.
+# Requires the backend to be up (`just dev-backend`).
+drift-check:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    just wait-backend
+    cd frontend && yarn build >/dev/null
+    cd ..
+    if ! git diff --quiet -- frontend/src/apps frontend/blok.json; then
+      echo "!! generated code is out of sync with the backend:" >&2
+      git diff --stat -- frontend/src/apps frontend/blok.json >&2
+      echo "!! run 'just dev-backend' + 'cd frontend && yarn build', then commit the result" >&2
+      exit 1
+    fi
+    echo "generated code matches the backend"
 
 # ---------- build ----------
 

@@ -40,20 +40,38 @@ order). Both are expected noise; discard them if nothing else changed.
 ## Common recipes
 
 ```bash
-just install                 # install both halves
+just install                 # install both halves + activate git hooks
 just dev                     # both, correctly sequenced
-just dev-backend             # backend only  -> :8099
+just dev-backend             # backend only  -> :8099 (hot-reloads on edit)
 just dev-frontend            # frontend only -> :5173 (backend must already be up)
 
-just check                   # lint + types + tests
+just check                   # fmt-check + lint + types + tests
+just fmt                     # ruff format + prettier, in place
 just lint                    # ruff + eslint
 just types                   # tsc against tsconfig.app.json
-just test                    # pytest -k "not integration"
-just test-all                # pytest, including integration
+just test                    # pytest + vitest
+just test-all                # also runs the backend integration tests
+just drift-check             # is the committed codegen still in sync with the backend?
 
 just build                   # frontend bundle + backend wheel/sdist
 just clean                   # nuke .venv, node_modules, dist
 ```
+
+### Codegen drift
+
+Because the generator falls back silently, committed hooks can quietly diverge from the backend.
+`just drift-check` (and the `codegen-drift` CI job) boots the backend, regenerates, and fails if the
+result differs from what's committed. If it fails, run `just dev-backend`, then `cd frontend && yarn build`,
+and commit the regenerated output.
+
+The generator is deterministic: running it twice against the same backend rewrites nothing, and it only
+re-stamps `blok.json`'s `generatedAt` when the content actually changed.
+
+### Commits
+
+Commit messages must be [conventional](https://www.conventionalcommits.org/) — `feat:`, `fix:`, `chore:`,
+etc. This is enforced by a commit-msg hook (installed by `just install`) because the release version and
+changelog are derived from them: a malformed message means no release, or the wrong bump.
 
 ## Docker
 
@@ -129,8 +147,12 @@ in `--dry-run`). In CI, both the URL and the token come from the Actions checkou
 
 ## Known debt
 
-`just lint` and `just types` are **red on pre-existing issues** (~165 type errors, ~91 eslint problems,
-35 ruff findings). None of it is new: the `types` script used to point at a solution `tsconfig` with
-`files: []`, so it silently checked *zero files*, and no CI ever ran a linter. The gates are real now, and
-CI reports them **non-blocking** (`continue-on-error`) so the debt is visible without failing every build.
-Clear the backlog, then flip them to blocking in `.github/workflows/ci.yml`.
+The frontend gates are green and **blocking** in CI (`yarn lint`, `yarn types`, `yarn test`, `yarn build`).
+
+Two things are deliberately left unfinished, both marked `// TODO: not mounted` in
+`src/components/navigation/AppNavigationChrome.tsx`: `AppLatestChanges` (the only consumer of
+`latestPatches` — the README's "recent patches" surface) and `RouteNavigationBar` are written but never
+rendered. They were exported rather than deleted, because they're unfinished wiring, not dead code.
+
+`just lint` still reports **ruff** findings on the backend (mostly missing docstrings). Backend linting
+is not yet wired into CI — nothing ever enforced it, so it starts from a backlog.

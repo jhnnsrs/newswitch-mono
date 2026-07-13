@@ -1,33 +1,29 @@
-import {
-  useScansStore,
-  type ScanPattern,
-} from "@/store/scansStore";
-import { useViewStore } from "@/store/viewStore";
-import { useMemo } from "react";
-import * as THREE from "three";
+import { useScansStore, type ScanPattern } from '@/store/scansStore';
+import { useViewStore } from '@/store/viewStore';
+import { useMemo } from 'react';
+import * as THREE from 'three';
 
 // Shadcn UI Imports
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import {
   ScanRegionArgsSchema,
   ScanRegionDefinition,
   useScanRegion,
-} from "@/apps/default/hooks/actions";
-import { ActionButton } from "@/components/ActionButton";
-import { getOptionsFromZod } from "@/hooks/zodToChoices";
+} from '@/apps/default/hooks/actions';
+import { ActionButton } from '@/components/ActionButton';
+import { getOptionsFromZod } from '@/hooks/zodToChoices';
 
- const scanPatternOptions = getOptionsFromZod(
+const scanPatternOptions = getOptionsFromZod(
   ScanRegionArgsSchema.shape.scan_order,
 );
-
 
 export const ScanRegionPanel = () => {
   // 1. Get Domain Data
@@ -42,7 +38,10 @@ export const ScanRegionPanel = () => {
   const viewProjectionMatrix = useViewStore((s) => s.viewProjectionMatrix);
   const viewportSize = useViewStore((s) => s.viewportSize);
 
-  const { call: regionScan } = useScanRegion();
+  // TODO: not wired up - the `call` from useScanRegion() is unused here; the panel
+  // triggers the scan through <ActionButton action={ScanRegionDefinition} /> instead.
+  // Hook call retained so the action stays registered.
+  useScanRegion();
 
   // 3. Calculate 2D Screen Position
   const screenPos = useMemo(() => {
@@ -114,7 +113,9 @@ export const ScanRegionPanel = () => {
               {scanPatternOptions.map((option) => (
                 <SelectItem
                   key={option.value}
-                  value={option.value}
+                  // getOptionsFromZod widens `value` to string | number; the zod schema
+                  // this is built from is a union of string literals, so this is a no-op.
+                  value={String(option.value)}
                   className="text-xs text-white"
                 >
                   {option.label}

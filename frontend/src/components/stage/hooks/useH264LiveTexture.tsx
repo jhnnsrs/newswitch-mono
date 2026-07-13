@@ -1,22 +1,16 @@
-import { H264_STREAM_PATH } from "@/constants";
-import type { Detector } from "@/apps/default/hooks/actions";
-import JMuxer from "jmuxer";
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  LinearFilter,
-  SRGBColorSpace,
-  VideoTexture
-} from "three";
+import { H264_STREAM_PATH } from '@/constants';
+import type { Detector } from '@/apps/default/hooks/actions';
+import { useFrame } from '@react-three/fiber';
+import JMuxer from 'jmuxer';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { LinearFilter, SRGBColorSpace, VideoTexture } from 'three';
 
-
-type ConnectionState = "disconnected" | "connecting" | "connected" | "error";
+type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'error';
 
 type StreamStats = {
   bytesReceived: number;
   chunksReceived: number;
 };
-
-
 
 interface JMuxerInstance {
   feed(data: { video: Uint8Array }): void;
@@ -33,19 +27,26 @@ export const useH264LiveTexture = ({
   setStats?: (stats: StreamStats) => void;
 }) => {
   const [connectionState, setConnectionState] =
-    useState<ConnectionState>("connecting");
+    useState<ConnectionState>('connecting');
+
+  // Kept in a ref so that an unmemoized `setStats` prop does not tear down and
+  // re-open the websocket on every render.
+  const setStatsRef = useRef(setStats);
+  useEffect(() => {
+    setStatsRef.current = setStats;
+  }, [setStats]);
 
   const socketRef = useRef<WebSocket | null>(null);
   const jmuxerRef = useRef<JMuxerInstance | null>(null);
   const statsRef = useRef<StreamStats>({ bytesReceived: 0, chunksReceived: 0 });
 
   const videoElement = useMemo(() => {
-    const video = document.createElement("video");
+    const video = document.createElement('video');
     video.muted = true;
     video.playsInline = true;
     video.autoplay = true;
     // Optimization for stream lag
-    video.setAttribute("webkit-playsinline", "webkit-playsinline");
+    video.setAttribute('webkit-playsinline', 'webkit-playsinline');
     return video;
   }, []);
 
@@ -62,7 +63,7 @@ export const useH264LiveTexture = ({
     try {
       jmuxerRef.current = new JMuxer({
         node: videoElement,
-        mode: "video",
+        mode: 'video',
         flushingTime: 0,
         fps: 30,
         debug: false,
@@ -70,33 +71,50 @@ export const useH264LiveTexture = ({
       });
 
       const socket = new WebSocket(`${url}/${detector.slot}`);
-      socket.binaryType = "arraybuffer";
+      socket.binaryType = 'arraybuffer';
       socketRef.current = socket;
 
-      socket.onopen = () => setConnectionState("connected");
+      socket.onopen = () => setConnectionState('connected');
       socket.onmessage = (event: MessageEvent) => {
         const chunk = new Uint8Array(event.data as ArrayBuffer);
         statsRef.current = {
           bytesReceived: statsRef.current.bytesReceived + chunk.byteLength,
           chunksReceived: statsRef.current.chunksReceived + 1,
         };
-        setStats?.({ ...statsRef.current });
+        setStatsRef.current?.({ ...statsRef.current });
         jmuxerRef.current?.feed({ video: chunk });
       };
-      socket.onerror = () => setConnectionState("error");
-      socket.onclose = () => setConnectionState("disconnected");
+      socket.onerror = () => setConnectionState('error');
+      socket.onclose = () => setConnectionState('disconnected');
     } catch (error) {
-      console.error("[Stage] Failed to initialize live stream", error);
+      console.error('[Stage] Failed to initialize live stream', error);
     }
 
     return () => {
       socketRef.current?.close();
       jmuxerRef.current?.destroy();
       videoElement.pause();
-      videoElement.src = "";
+      videoElement.src = '';
       videoElement.load();
     };
-  }, [url, videoElement]); // Removed setStats to prevent loop if not memoized
+    // NOTE: `detector.slot` is part of the websocket URL, so it must be a dependency -
+    // without it, switching detectors kept the socket pointed at the old slot.
+    // `setStats` is deliberately read through a ref (see above) instead of being a
+    // dependency, so an unmemoized setter cannot cause a reconnect loop.
+  }, [url, videoElement, detector.slot]);
+
+  // VideoTextures fed by JMuxer sometimes need the update flag set manually. This lives
+  // here (rather than in the consumer's useFrame) because the texture is owned by this hook.
+  // Held in a ref because react-hooks/immutability forbids mutating a memoized value
+  // directly; the ref is the sanctioned mutable handle to the texture we own.
+  const textureRef = useRef(texture);
+  useEffect(() => {
+    textureRef.current = texture;
+  }, [texture]);
+
+  useFrame(() => {
+    textureRef.current.needsUpdate = true;
+  });
 
   return { texture, connectionState };
 };

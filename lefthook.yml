@@ -1,0 +1,21 @@
+# Activated by `just install` (npx lefthook install).
+commit-msg:
+  commands:
+    commitlint:
+      # The release pipeline derives the version from conventional commits, so a malformed
+      # message silently means "no release" or the wrong bump. Catch it here, not in CI.
+      run: npx --yes --package @commitlint/cli --package @commitlint/config-conventional -- commitlint --edit {1}
+
+pre-commit:
+  parallel: true
+  commands:
+    format-frontend:
+      root: frontend/
+      glob: "*.{ts,tsx,css}"
+      # blok.json and src/apps/** are generated - the generator owns their formatting.
+      exclude: "src/apps/**"
+      run: yarn prettier --write {staged_files} && git add {staged_files}
+    format-backend:
+      root: backend/
+      glob: "*.py"
+      run: uv run ruff format {staged_files} && git add {staged_files}

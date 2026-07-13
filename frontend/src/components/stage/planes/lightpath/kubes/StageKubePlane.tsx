@@ -1,6 +1,9 @@
-import { useStageState, type StageKubeSchema, type StageKubeStateSchema } from "@/apps/default/hooks/states";
-import { type z } from "zod";
-import { useThreeAffine } from "./useThreeAffine";
+import {
+  useStageState,
+  type StageKubeSchema,
+} from '@/apps/default/hooks/states';
+import { type z } from 'zod';
+import { useThreeAffine } from './useThreeAffine';
 
 type StageKubeData = z.infer<typeof StageKubeSchema>;
 
@@ -9,10 +12,9 @@ export const StageKubePlane = ({ data }: { data: StageKubeData }) => {
   // The entire group is positioned at the state coordinates.
   const matrix = useThreeAffine(data.affine_matrix);
 
-
-  const stageState = useStageState({selector: (s) => s});
-
-
+  // TODO: not wired up - the stage state is subscribed to but never used to offset
+  // the stage mesh. Hook call kept for the subscription.
+  useStageState({ selector: (s) => s });
 
   return (
     <group matrix={matrix} matrixAutoUpdate={false}>

@@ -1,6 +1,7 @@
-import { Html } from "@react-three/drei";
-import { useThree } from "@react-three/fiber";
-import { useEffect, useState } from "react";
+import { Html } from '@react-three/drei';
+import { useThree } from '@react-three/fiber';
+import { useEffect, useState } from 'react';
+import { OrthographicCamera, PerspectiveCamera } from 'three';
 
 /**
  * A Scale Bar that stays in the UI but calculates its length
@@ -8,7 +9,7 @@ import { useEffect, useState } from "react";
  */
 export const WorldScaleBar = () => {
   const { size, camera } = useThree();
-  const [scaleInfo, setScaleInfo] = useState({ widthPx: 0, label: "" });
+  const [scaleInfo, setScaleInfo] = useState({ widthPx: 0, label: '' });
 
   // Re-calculate whenever the camera zooms or the window resizes
   useEffect(() => {
@@ -18,7 +19,13 @@ export const WorldScaleBar = () => {
       // Note: Three.js Ortho camera usually defines frustum by top/bottom/left/right.
       // If using @react-three/drei's OrthographicCamera, it handles the aspect ratio.
 
-      const zoom = (camera as any).zoom || 1;
+      // `camera` is typed as the base THREE.Camera, which has no `zoom`; both concrete
+      // camera types r3f can hand us do.
+      const zoom =
+        (camera instanceof OrthographicCamera ||
+        camera instanceof PerspectiveCamera
+          ? camera.zoom
+          : 1) || 1;
 
       // Determine a "nice" round number for the scale (e.g., 10, 50, 100, 500)
       // At zoom=1, 1 unit = 1 pixel (usually). We want a bar roughly 100px wide.
