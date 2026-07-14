@@ -1,0 +1,34 @@
+{
+  "cameras": [
+    {
+      "serial": "HIK-000123",
+      "name": "top camera",
+      "slot": 1,
+      "exposure_time_s": 0.01,
+      "gain": 1.0,
+      "framerate_fps": 30.0,
+      "roi": { "x": 0, "y": 0, "width": 2048, "height": 2048 },
+      "bit_depth": 12,
+      "channels": 1,
+      "use_dma": true,
+      "data_path": "/data/uc2/top",
+      "recording_format": "zarr",
+      "compute_variance": true
+    },
+    {
+      "serial": "HIK-000456",
+      "name": "side camera",
+      "slot": 2,
+      "exposure_time_s": 0.005,
+      "gain": 2.5,
+      "framerate_fps": 100.0,
+      "roi": null,
+      "bit_depth": 8,
+      "channels": 3,
+      "use_dma": false,
+      "data_path": "/data/uc2/side",
+      "recording_format": "tiff_3d",
+      "compute_variance": false
+    }
+  ]
+}

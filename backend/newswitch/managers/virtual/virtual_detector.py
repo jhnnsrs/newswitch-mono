@@ -228,6 +228,13 @@ class VirtualDetectorManager:
                 min_gain=self.config.min_gain,
             ),
         ]
+    def shutdown(self) -> None:
+        """Shutdown the virtual detector manager."""
+        # Clear cache and reset state
+        self.clear_cache()
+        
+        print("VirtualDetectorManager shutdown complete.")
+
 
     def clear_cache(self) -> None:
         """Clear all cached frame data.

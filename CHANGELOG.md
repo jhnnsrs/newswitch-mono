@@ -6,6 +6,9 @@
 
 # CHANGELOG
 
+## v0.11.0 (2026-07-14)
+- added UC2 Devices and changed to build system scikit-build (in the backend)
+
 
 ## v0.10.0 (2026-05-27)
 

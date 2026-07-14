@@ -23,9 +23,10 @@ import koil
 from rekuest_next.register import register
 from rekuest_next.agents.hooks.startup import startup
 from rekuest_next.agents.hooks.background import background
-
+from rekuest_next.agents.hooks.shutdown import shutdown
 
 # Import protocol contexts and states
+from newswitch.managers.uc2.uc2_detector_manager import Uc2DetectorManager
 from newswitch.protocols.core import Frame
 from newswitch.managers.acquistion_manager import AcquistionManager
 from newswitch.managers.cache.local_cache import LocalCacheManager
@@ -184,19 +185,29 @@ async def provide_managers(
     led = VirtualLEDManager(illumination_state=illumination_state)
     objective = VirtualObjectiveManager(objective_state=objective_state)
     filter_bank = VirtualFilterBankManager(filter_bank_state=filter_bank_state)
-    detector = VirtualDetectorManager(
-        camera_state=camera_state,
-        stage_state=stage_state,
-        illumination_state=illumination_state,
-        broadcaster=frame_broadcaster,
-        objective_state=objective_state,
-        filter_bank_state=filter_bank_state,
-    )
+    if config.use_virtual_microscope:
+        detector = VirtualDetectorManager(
+            camera_state=camera_state, 
+            stage_state=stage_state,
+            illumination_state=illumination_state, 
+            broadcaster=frame_broadcaster,
+            objective_state=objective_state, 
+            filter_bank_state=filter_bank_state,
+        )
+        
+    else:
+        detector = Uc2DetectorManager(
+            camera_state=camera_state, 
+            broadcaster=frame_broadcaster,
+            settings_path="uc2DevSettings.json",   # ggf. aus ImswitchConfig
+            )
+        
     io_manager = LocalFileIOManager(
         state=io_state,
         config=LocalFileConfig(base_path="/tmp/newswitch/images"),
     )
 
+    
     calibration_manager = CalibrationManager(calibration_state=calibration_state)
 
     hook_state = protocols.HookState()
@@ -281,6 +292,30 @@ async def provide_managers(
         cache_manager,
     )
 
+# ====================
+# Shutdown: release what provide_managers acquired
+# ====================
+@shutdown
+async def release_managers(
+    frame_broadcaster: FrameBroadcaster,
+    detector: DetectorManager,
+    serial: SerialManager,
+) -> None:
+    """Release the resources provide_managers acquired.
+
+    Runs after the background tasks are cancelled and before the transport goes
+    down. Must not return anything - the agent is tearing down, so returned
+    states would never be used.
+    """
+    # Stops the ffmpeg subprocesses behind every H264Encoder. Without this they
+    # outlive the process and keep their pipes open.
+    await frame_broadcaster.stop_all_encoders()
+    frame_broadcaster.stop_broadcasting()
+
+    # Hardware only: the virtual manager has no port to give back.
+    close = getattr(serial, "aclose", None)
+    if close is not None:
+        await close()
 
 @background
 def run_detector_loop(
