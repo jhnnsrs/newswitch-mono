@@ -1,0 +1,68 @@
+{
+  "_comment": "Full openUC2 setup where the HOST is the CANopen master (direct CAN access, one node per board). Needs a real CAN interface: SocketCAN (MCP2515 HAT on a Pi: interface=socketcan, channel=can0, bring the link up first with `sudo ip link set can0 up type can bitrate 500000`) or a Waveshare USB-CAN-A adapter (interface=waveshare, port=<its serial device>). NOTE: a USB-connected UC2 CAN-HAT master (e.g. /dev/cu.SLAB_USBtoUART at 921600 baud) is NOT a CAN interface — it bridges serial JSON to CAN itself; use configs/uc2_serial.json for that topology. Boot with: NEWSWITCH_CONFIG=configs/uc2_canopen.json uvicorn main:app --port 8099.",
+  "use_virtual_microscope": false,
+  "uc2_transport": "canopen",
+  "uc2_can_interface": "socketcan",
+  "uc2_can_channel": "can0",
+  "uc2_can_port": null,
+  "uc2_can": {
+    "bitrate": 500000,
+    "sdo_timeout": 2.0,
+    "node_x": 11,
+    "node_y": 12,
+    "node_z": 13,
+    "node_a": 14,
+    "node_led": 20,
+    "node_laser": 21,
+    "node_galvo": 30,
+    "steps_per_um_x": 3.2,
+    "steps_per_um_y": 3.2,
+    "steps_per_um_z": 3.2,
+    "steps_per_deg_a": 1.0,
+    "default_speed": 5000.0,
+    "home_speed_steps": 15000,
+    "home_direction": -1,
+    "home_timeout_ms": 20000,
+    "move_timeout_s": 120.0
+  },
+  "uc2_stage": {
+    "axes": ["X", "Y", "Z", "A"],
+    "home_axes": ["Z", "X", "Y"],
+    "default_speed": 5000.0
+  },
+  "uc2_illumination": {
+    "pwm_max": 1023,
+    "sources": [
+      {
+        "slot": 1,
+        "channel": 0,
+        "kind": "LASER",
+        "wavelength": 488.0,
+        "intensity": 0.0,
+        "min_intensity": 0.0,
+        "max_intensity": 100.0,
+        "is_active": false
+      },
+      {
+        "slot": 2,
+        "channel": 1,
+        "kind": "LASER",
+        "wavelength": 635.0,
+        "intensity": 0.0,
+        "min_intensity": 0.0,
+        "max_intensity": 100.0,
+        "is_active": false
+      },
+      {
+        "slot": 3,
+        "channel": 2,
+        "kind": "LED",
+        "wavelength": 0.0,
+        "intensity": 0.0,
+        "min_intensity": 0.0,
+        "max_intensity": 100.0,
+        "is_active": false
+      }
+    ]
+  }
+}
