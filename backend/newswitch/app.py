@@ -5,7 +5,7 @@ This module provides a FastAPI server with arkitekt_next integration
 for controlling a virtual microscope through registered functions.
 """
 
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -31,9 +31,17 @@ from newswitch.managers.acquistion_manager import AcquistionManager
 from newswitch.managers.cache.local_cache import LocalCacheManager
 from newswitch.managers.calibration import CalibrationManager
 from newswitch.managers.light_path import LightPathManager
-from newswitch.managers.uc2.serial_manager import UC2SerialManager
-from newswitch.managers.uc2.stage_manager import UC2StageManager
-from newswitch.managers.virtual.virtual_serial_manager import VirtualSerialManager
+from newswitch.managers.uc2.stage_manager import UC2StageConfig, UC2StageManager
+from newswitch.managers.uc2.illumination_manager import (
+    UC2IlluminationConfig,
+    UC2IlluminationManager,
+)
+from newswitch.managers.uc2.canopen_bus import UC2CanBus, UC2CanBusConfig
+from newswitch.managers.uc2.rest_bus import UC2RestBus, UC2RestBusConfig
+from newswitch.managers.uc2.virtual_bus import VirtualUC2Bus
+from newswitch.managers.uc2.dispatch import dispatch_uc2_events
+from newswitch.protocols.illumination import Illumination
+from newswitch.protocols.uc2 import UC2BusManager, UC2State
 from newswitch.managers.expanse_manager import ExpanseManager
 from newswitch.managers.metadata_manager import MetadataManager
 from newswitch.protocols import (
@@ -41,7 +49,6 @@ from newswitch.protocols import (
     StageState,
     IlluminationManager,
     IlluminationState,
-    SerialManager,
     DetectorManager,
     CameraState,
     ObjectiveManager,
@@ -68,7 +75,6 @@ from newswitch.managers.io import LocalFileIOManager, LocalFileConfig
 from newswitch.broadcasters import FrameBroadcaster
 
 # Import routes
-from newswitch.protocols.serial_manager import SerialState
 from newswitch.routes.ws.liveview import router as liveview_router
 from newswitch.routes.http.files import router as files_router
 from newswitch.routes.http.cache import router as cache_router
@@ -95,6 +101,23 @@ class ImswitchConfig(BaseModel):
     use_virtual_microscope: bool = True
     db_path: str = "agent_data.db"
     available_cubes: list[str] = ["cube1", "cube2", "cube3"]
+    # UC2 hardware transport (used when use_virtual_microscope is False).
+    # "canopen" (preferred, multi-node CAN bus) or "rest" (single ESP32 master
+    # over serial JSON). Both are plug-in replacements behind UC2BusManager.
+    uc2_transport: str = "canopen"
+    uc2_can_interface: Optional[str] = None  # "socketcan" | "waveshare" | None (auto)
+    uc2_can_channel: Optional[str] = "can0"
+    uc2_can_port: Optional[str] = None  # Waveshare USB-CAN-A serial port
+    uc2_serial_port: Optional[str] = None  # None = autodetect
+    uc2_baudrate: int = 115200
+    # Detailed per-component overrides, keyed like the corresponding config
+    # dataclasses (UC2CanBusConfig / UC2RestBusConfig / UC2StageConfig /
+    # UC2IlluminationConfig). Nested values win over the flat fields above.
+    # See backend/configs/*.json for complete examples.
+    uc2_can: dict[str, Any] = {}
+    uc2_rest: dict[str, Any] = {}
+    uc2_stage: dict[str, Any] = {}
+    uc2_illumination: dict[str, Any] = {}
 
 
 # ====================
@@ -103,11 +126,12 @@ class ImswitchConfig(BaseModel):
 
 
 @startup
-async def provide_managers(
+async def provide_managers(  # TODO: can we make this adaptive so that we read this list from a config like in ImSwitch?
     app_context: ImswitchConfig,
 ) -> Tuple[
     FrameBroadcaster,
-    SerialManager,
+    UC2BusManager,
+    UC2State,
     StageManager,
     IlluminationManager,
     DetectorManager,
@@ -121,7 +145,6 @@ async def provide_managers(
     ObjectiveState,
     FilterBankState,
     IOState,
-    SerialState,
     protocols.HookState,
     protocols.ExpanseState,
     CalibrationState,
@@ -167,21 +190,43 @@ async def provide_managers(
 
     io_state = IOState()
 
-    serial_state = SerialState()
+    uc2_state = UC2State()
 
     if config.use_virtual_microscope:
-        serial = VirtualSerialManager(state=serial_state)
-        stage = VirtualStageManager(stage=stage_state)
+        uc2_bus: UC2BusManager = VirtualUC2Bus(state=uc2_state)
+        stage: StageManager = VirtualStageManager(stage=stage_state)
+        led: IlluminationManager = VirtualLEDManager(illumination_state=illumination_state)
     else:
-        serial = UC2SerialManager(
-            state=serial_state,
-            port="/dev/ttyUSB0",
-            baudrate=115200,
-            stage_state=stage_state,
-        )  # Replace with actual serial manager for hardware
-        stage = UC2StageManager(stage_state=stage_state, serial_manager=serial)  #
+        if config.uc2_transport == "rest":
+            # Nested per-component overrides win over the flat convenience fields.
+            rest_kwargs: dict[str, Any] = {
+                "serialport": config.uc2_serial_port,
+                "baudrate": config.uc2_baudrate,
+                **config.uc2_rest,
+            }
+            uc2_bus = UC2RestBus(state=uc2_state, config=UC2RestBusConfig(**rest_kwargs))
+        else:
+            can_kwargs: dict[str, Any] = {
+                "interface": config.uc2_can_interface,
+                "channel": config.uc2_can_channel,
+                "port": config.uc2_can_port,
+                **config.uc2_can,
+            }
+            uc2_bus = UC2CanBus(state=uc2_state, config=UC2CanBusConfig(**can_kwargs))
+        stage_config = UC2StageConfig(**config.uc2_stage) if config.uc2_stage else None
+        illumination_kwargs = dict(config.uc2_illumination)
+        if "sources" in illumination_kwargs:
+            illumination_kwargs["sources"] = [
+                Illumination(**source) for source in illumination_kwargs["sources"]
+            ]
+        illumination_config = (
+            UC2IlluminationConfig(**illumination_kwargs) if illumination_kwargs else None
+        )
+        stage = UC2StageManager(stage_state=stage_state, bus=uc2_bus, config=stage_config)
+        led = UC2IlluminationManager(
+            illumination_state=illumination_state, bus=uc2_bus, config=illumination_config
+        )
 
-    led = VirtualLEDManager(illumination_state=illumination_state)
     objective = VirtualObjectiveManager(objective_state=objective_state)
     filter_bank = VirtualFilterBankManager(filter_bank_state=filter_bank_state)
     detector = VirtualDetectorManager(
@@ -254,7 +299,8 @@ async def provide_managers(
 
     return (
         frame_broadcaster,
-        serial,
+        uc2_bus,
+        uc2_state,
         stage,
         led,
         detector,
@@ -268,7 +314,6 @@ async def provide_managers(
         objective_state,
         filter_bank_state,
         io_state,
-        serial_state,
         hook_state,
         expanse_state,
         calibration_state,
@@ -291,6 +336,22 @@ def run_detector_loop(
     detector.acquire_live()
 
 
+@background
+async def run_uc2_bus(uc2_bus: UC2BusManager) -> None:
+    """Connect the UC2 hardware bus and pump its transport until shutdown."""
+    await uc2_bus.abackground()
+
+
+@background
+async def run_uc2_event_dispatch(
+    uc2_bus: UC2BusManager,
+    stage_state: StageState,
+    uc2_state: UC2State,
+) -> None:
+    """Mirror spontaneous UC2 hardware events into the shared reactive states."""
+    await dispatch_uc2_events(uc2_bus, stage_state, uc2_state)
+
+
 # ====================
 # Registered Functions - Illumination
 # ====================
@@ -301,7 +362,7 @@ def clear_expanse(expanse_manager: protocols.ExpanseManager) -> None:
 
 
 @register
-def set_illumination_intensity(
+def set_illumination_intensity(  # TODO: Why is this function here?!
     illumination: IlluminationManager,
     intensity: float,
     channel: int = 1,
@@ -331,7 +392,7 @@ def long_stuff_running() -> None:
 
 
 @register
-def turn_on_illumination(
+def turn_on_illumination(  # TODO: Why is this function here?!
     illumination: IlluminationManager,
     state: IlluminationState,
     channel: int = 1,
@@ -397,7 +458,7 @@ def failing_camera(camera: CameraState, intensity: int) -> str:
         )
     ],
 )
-def move_stage(
+def move_stage(  # TODO: Why is this function here?!
     stage: StageManager,
     x: Optional[float] = None,
     y: Optional[float] = None,
@@ -423,7 +484,7 @@ def move_stage(
 
 @register
 def move_home(stage: StageManager, state: StageState) -> None:
-    """Move stage to home position."""
+    """Move stage to home position."""  # TODO: Why is this function here?!
     pos = stage.move_home()
     return pos
 
@@ -434,6 +495,9 @@ def move_home(stage: StageManager, state: StageState) -> None:
 def kill_benedict(stage: StageManager, kill_hard: str, die_young: bool) -> None:
     """A function that simulates a critical failure to test error handling and lock release."""
     raise RuntimeError("Benedict has been killed. This is a simulated critical failure.")
+
+
+# TODO: Why was this function defined?
 
 
 @register

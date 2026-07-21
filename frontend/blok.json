@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-13T17:11:29.290Z",
+  "generatedAt": "2026-07-21T13:58:51.549Z",
   "app": {
     "description": "",
     "name": "newswitch",
@@ -4764,7 +4764,7 @@
                     ],
                     "choices": null,
                     "default": null,
-                    "description": "Configuration for a single optical filter.\n\n    Attributes:\n        slot: Filter wheel slot number.\n        name: Human-readable filter name.\n        center_wavelength: Center wavelength of the filter passband (nm).\n        bandwidth: Full width at half maximum of the passband (nm).\n        transmission: Peak transmission efficiency (0.0 to 1.0).\n        is_active: Whether this filter is currently in the light path.\n    ",
+                    "description": "Configuration for a single optical filter.\n\nAttributes:\n    slot: Filter wheel slot number.\n    name: Human-readable filter name.\n    center_wavelength: Center wavelength of the filter passband (nm).\n    bandwidth: Full width at half maximum of the passband (nm).\n    transmission: Peak transmission efficiency (0.0 to 1.0).\n    is_active: Whether this filter is currently in the light path.\n",
                     "dimension": null,
                     "effects": [],
                     "identifier": "filter",
@@ -5086,7 +5086,7 @@
                     ],
                     "choices": null,
                     "default": null,
-                    "description": "Shared state for illumination parameters.\n\n    Note: intensity is divided by 1000 in the detector for actual scaling,\n    so 10000.0 gives an effective intensity of 10.0.\n    ",
+                    "description": "Shared state for illumination parameters.\n\nNote: intensity is divided by 1000 in the detector for actual scaling,\nso 10000.0 gives an effective intensity of 10.0.\n",
                     "dimension": null,
                     "effects": [],
                     "identifier": "illumination",
@@ -8343,34 +8343,6 @@
           "interface": "ObjectiveState",
           "key": null
         },
-        "SerialState": {
-          "app": null,
-          "definition": {
-            "name": "SerialState",
-            "ports": [
-              {
-                "children": null,
-                "choices": null,
-                "default": false,
-                "description": null,
-                "dimension": null,
-                "effects": [],
-                "identifier": null,
-                "key": "active",
-                "kind": "BOOL",
-                "label": null,
-                "nullable": false,
-                "proposedUnits": null,
-                "provides": null,
-                "referenceUnit": null,
-                "validators": [],
-                "widget": null
-              }
-            ]
-          },
-          "interface": "SerialState",
-          "key": null
-        },
         "StageState": {
           "app": null,
           "definition": {
@@ -8632,6 +8604,143 @@
             ]
           },
           "interface": "StageState",
+          "key": null
+        },
+        "UC2State": {
+          "app": null,
+          "definition": {
+            "name": "UC2State",
+            "ports": [
+              {
+                "children": null,
+                "choices": null,
+                "default": false,
+                "description": null,
+                "dimension": null,
+                "effects": [],
+                "identifier": null,
+                "key": "connected",
+                "kind": "BOOL",
+                "label": null,
+                "nullable": false,
+                "proposedUnits": null,
+                "provides": null,
+                "referenceUnit": null,
+                "validators": [],
+                "widget": null
+              },
+              {
+                "children": null,
+                "choices": null,
+                "default": "virtual",
+                "description": null,
+                "dimension": null,
+                "effects": [],
+                "identifier": null,
+                "key": "transport",
+                "kind": "STRING",
+                "label": null,
+                "nullable": false,
+                "proposedUnits": null,
+                "provides": null,
+                "referenceUnit": null,
+                "validators": [],
+                "widget": null
+              },
+              {
+                "children": null,
+                "choices": null,
+                "default": "",
+                "description": null,
+                "dimension": null,
+                "effects": [],
+                "identifier": null,
+                "key": "firmware",
+                "kind": "STRING",
+                "label": null,
+                "nullable": false,
+                "proposedUnits": null,
+                "provides": null,
+                "referenceUnit": null,
+                "validators": [],
+                "widget": null
+              },
+              {
+                "children": null,
+                "choices": null,
+                "default": false,
+                "description": null,
+                "dimension": null,
+                "effects": [],
+                "identifier": null,
+                "key": "estop_active",
+                "kind": "BOOL",
+                "label": null,
+                "nullable": false,
+                "proposedUnits": null,
+                "provides": null,
+                "referenceUnit": null,
+                "validators": [],
+                "widget": null
+              },
+              {
+                "children": [
+                  {
+                    "children": null,
+                    "choices": null,
+                    "default": null,
+                    "description": null,
+                    "dimension": null,
+                    "effects": [],
+                    "identifier": null,
+                    "key": "...",
+                    "kind": "INT",
+                    "label": null,
+                    "nullable": false,
+                    "proposedUnits": null,
+                    "provides": null,
+                    "referenceUnit": null,
+                    "validators": [],
+                    "widget": null
+                  }
+                ],
+                "choices": null,
+                "default": null,
+                "description": null,
+                "dimension": null,
+                "effects": [],
+                "identifier": null,
+                "key": "nodes_online",
+                "kind": "LIST",
+                "label": null,
+                "nullable": false,
+                "proposedUnits": null,
+                "provides": null,
+                "referenceUnit": null,
+                "validators": [],
+                "widget": null
+              },
+              {
+                "children": null,
+                "choices": null,
+                "default": "",
+                "description": null,
+                "dimension": null,
+                "effects": [],
+                "identifier": null,
+                "key": "last_error",
+                "kind": "STRING",
+                "label": null,
+                "nullable": false,
+                "proposedUnits": null,
+                "provides": null,
+                "referenceUnit": null,
+                "validators": [],
+                "widget": null
+              }
+            ]
+          },
+          "interface": "UC2State",
           "key": null
         }
       },
@@ -14299,11 +14408,11 @@
           ],
           "logo": null,
           "manipulates": [
-            "StageState",
-            "FilterBankState",
-            "ObjectiveState",
             "CameraState",
             "IlluminationState",
+            "FilterBankState",
+            "StageState",
+            "ObjectiveState",
             "ExpanseState"
           ],
           "needsToken": true,
